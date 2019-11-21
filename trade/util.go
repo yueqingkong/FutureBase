@@ -178,7 +178,7 @@ func klineToCoin(symbol string, section string, kline plat.FutureCandles) []orm.
 /**
  * 同步账号
  */
-func Account(symbol string) {
+func Account(symbol string, total string) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
@@ -192,7 +192,6 @@ func Account(symbol string) {
 			account.Balance = 1.0
 			account.Buy = 0
 			account.Total = 1.0
-
 			xorm.InsertAccount(account)
 		}
 	} else if mode == "release" {
@@ -207,14 +206,14 @@ func Account(symbol string) {
 			local := xorm.Account(symbol)
 
 			// 账户余额 * 倍数
-			equity := util.StringToFloat32(account.Info.Btc.Equity) * times
+			// equity := util.StringToFloat32(account.Info.Btc.Equity) * times
+			equity := util.StringToFloat32(total) * times
 			local.Total = equity
 
 			if local.Symbol == "" {
 				local.Symbol = symbol
 				local.Buy = 0.0
 				local.Balance = equity
-
 				xorm.InsertAccount(local)
 			} else {
 				local.Balance = equity - local.Buy
@@ -496,9 +495,6 @@ func Sell(symbol string, strategy string, op int32, price float32, t time.Time) 
 				log.Print("[Sell] err: ", err)
 			} else if result.Result {
 				SellRecord(symbol, strategy, op, price, t)
-
-				// 同步账户
-				Account(symbol)
 			} else {
 				log.Print("[Sell] result =false, ", result)
 			}

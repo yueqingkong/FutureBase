@@ -12,6 +12,7 @@ import (
 type OkexTrade struct {
 	Mode    func() string // test|release
 	DB      func() (string, string, string)
+	Account func() (map[string]string)
 	Symbols func() []string
 	Keys    func() (string, string, string) // 交易key
 	Port    func() string
@@ -20,8 +21,7 @@ type OkexTrade struct {
 type FutureStrategy interface {
 	Name() string
 	Tick(symbol string, price float32, t time.Time)
-	Buy(symbol string, strategy string, op int32, section string, price float32, limit int32, t time.Time)
-	Sell(symbol string, strategy string, op int32, price float32, t time.Time)
+	Buy(symbol string, op int32, price float32, t time.Time)
 }
 
 /**
@@ -41,8 +41,12 @@ func (trade OkexTrade) StartTrade(strategy FutureStrategy) {
 	// 数据库
 	orm.ConnectSQL(trade.DB())
 
+	// 同步账号
+	for k, v := range trade.Account() {
+		Account(k, v)
+	}
+
 	for _, symbol := range trade.Symbols() {
-		Account(symbol)    // 同步账户
 		Instrument(symbol) // 同步合约
 	}
 
@@ -86,9 +90,9 @@ func (trade OkexTrade) TickTrend(symbol string, strategy FutureStrategy) {
 			record := records[0]
 			lastOp := record.Operation
 			if lastOp == 1 {
-				strategy.Sell(symbol, strategy.Name(), 3, priceFloat, start)
+				Sell(symbol, strategy.Name(), 3, priceFloat, start)
 			} else if lastOp == 2 {
-				strategy.Sell(symbol, strategy.Name(), 4, priceFloat, start)
+				Sell(symbol, strategy.Name(), 4, priceFloat, start)
 			}
 		}
 	} else {
