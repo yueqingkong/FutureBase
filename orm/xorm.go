@@ -12,16 +12,16 @@ import (
 // K线数据
 type Coin struct {
 	Id         int64
-	Symbol     string    `xorm:"varchar(255) unique(symbol,plat,period,create_time)"`
-	Plat       string    `xorm:"varchar(255) unique(symbol,plat,period,create_time)"`
-	Period     string    `xorm:"varchar(255) unique(symbol,plat,period,create_time)"` // 时间间隔
+	Symbol     string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"`
+	Plat       string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"`
+	Period     string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"` // 时间间隔
 	Open       float32   `xorm:"float"`
 	Close      float32   `xorm:"float"`
 	High       float32   `xorm:"float"`
 	Low        float32   `xorm:"float"`
 	Volume     float32   `xorm:"float"`
-	Timestamp  int64     `xorm:"bigint"`
-	CreateTime time.Time `xorm:"DATETIME unique(symbol,plat,period,create_time))"`
+	Timestamp  int64     `xorm:"bigint unique(symbol,plat,period,timestamp))"`
+	CreateTime time.Time `xorm:"DATETIME"`
 }
 
 // 账户
@@ -206,8 +206,8 @@ func (orm XOrm) Accounts() []Account {
 // (正序)前几日日线
 func (orm XOrm) Before(symbol string, period string, start time.Time, limit int32) []Coin {
 	coins := make([]Coin, 0)
-	err := engine.Where("symbol = ? and period = ? and create_time < ?", symbol, period, start).
-		Desc("create_time").
+	err := engine.Where("symbol = ? and period = ? and timestamp < ?", symbol, period, start.Unix()).
+		Desc("timestamp").
 		Limit(int(limit)).
 		Find(&coins)
 
@@ -226,7 +226,7 @@ func (orm XOrm) Before(symbol string, period string, start time.Time, limit int3
 func (orm XOrm) Last(symbol string, period string) Coin {
 	coins := make([]Coin, 0)
 	err := engine.Where("symbol = ? and period = ?", symbol, period).
-		Desc("create_time").
+		Desc("timestamp").
 		Limit(1).
 		Find(&coins)
 
@@ -251,11 +251,11 @@ func (orm XOrm) Next(symbol string, period string, start time.Time) []Coin {
 	var err error
 	if start.Day() == 0 {
 		err = engine.Where("symbol = ? and period = ?", symbol, period).
-			Asc("create_time").
+			Asc("timestamp").
 			Find(&coins)
 	} else {
-		err = engine.Where("symbol = ? and period = ? and create_time > ?", symbol, period, start).
-			Asc("create_time").
+		err = engine.Where("symbol = ? and period = ? and timestamp > ?", symbol, period, start.Unix()).
+			Asc("timestamp").
 			Find(&coins)
 	}
 
@@ -271,7 +271,7 @@ func (orm XOrm) Next(symbol string, period string, start time.Time) []Coin {
 func (orm XOrm) LastRecord(symbol string, strategy string, limit int32) []Record {
 	records := make([]Record, 0)
 	err := engine.Where("symbol = ? and strategy = ?", symbol, strategy).
-		Desc("create_time").
+		Desc("timestamp").
 		Limit(int(limit)).
 		Find(&records)
 
@@ -298,7 +298,7 @@ func (orm XOrm) Records(symbol string, strategy string) []Record {
 
 func (orm XOrm) RecordsAll() []Record {
 	records := make([]Record, 0)
-	err := engine.Desc("create_time").Find(&records)
+	err := engine.Desc("timestamp").Find(&records)
 
 	if err != nil {
 		log.Print("[Records]", err)
