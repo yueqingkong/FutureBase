@@ -203,7 +203,7 @@ func (orm XOrm) Accounts() []Account {
 	return accounts
 }
 
-// (正序)前几日日线
+// (正序) 指定时间前几日日线
 func (orm XOrm) Before(symbol string, period string, limit int32) []Coin {
 	coins := make([]Coin, 0)
 	err := engine.Where("symbol = ? and period = ?", symbol, period).
