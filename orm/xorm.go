@@ -204,9 +204,9 @@ func (orm XOrm) Accounts() []Account {
 }
 
 // (正序)前几日日线
-func (orm XOrm) Before(symbol string, period string, start time.Time, limit int32) []Coin {
+func (orm XOrm) Before(symbol string, period string, limit int32) []Coin {
 	coins := make([]Coin, 0)
-	err := engine.Where("symbol = ? and period = ? and timestamp < ?", symbol, period, start.Unix()).
+	err := engine.Where("symbol = ? and period = ?", symbol, period).
 		Desc("timestamp").
 		Limit(int(limit)).
 		Find(&coins)
@@ -214,6 +214,30 @@ func (orm XOrm) Before(symbol string, period string, start time.Time, limit int3
 	if err != nil {
 		log.Print("[Before]", err)
 	}
+
+	// 重新排序
+	newCoins := make([]Coin, 0)
+	for index := len(coins) - 1; index >= 0; index-- {
+		newCoins = append(newCoins, coins[index])
+	}
+	return newCoins
+}
+
+// (正序)前几日日线
+func (orm XOrm) BeforeBy(symbol string, period string, start time.Time, limit int32) []Coin {
+	coins := make([]Coin, 0)
+
+	timestamp := start.Unix()
+	err := engine.Where("symbol = ? and period = ? and timestamp < ?", symbol, period, timestamp).
+		Desc("timestamp").
+		Limit(int(limit)).
+		Find(&coins)
+
+	if err != nil {
+		log.Print("[Before]", err)
+	}
+
+	log.Println(timestamp, coins)
 
 	// 重新排序
 	newCoins := make([]Coin, 0)

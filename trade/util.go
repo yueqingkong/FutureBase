@@ -232,7 +232,7 @@ func Channel(symbol string, section string, backRange int32, t time.Time) (float
 	var high float32
 	var low float32
 
-	coins := xorm.Before(symbol, section, t, backRange)
+	coins := xorm.Before(symbol, section, backRange)
 	for k, value := range coins {
 		if k == int(backRange) {
 
