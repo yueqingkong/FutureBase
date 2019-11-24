@@ -257,9 +257,9 @@ func Channel(symbol string, section string, backRange int32, t time.Time) (float
  *  2、前一交易日收盘价与当个交易日最高价间的波幅
  *  3、前一交易日收盘价与当个交易日最低价间的波幅
  */
-func ATR(symbol string, section string, t time.Time, limit int32) float32 {
+func ATR(symbol string, section string, limit int32) float32 {
 	xorm := orm.NewXOrm()
-	coins := xorm.Before(symbol, section, t, limit)
+	coins := xorm.Before(symbol, section, limit)
 
 	var totalRange float32
 	for k, value := range coins {
@@ -290,7 +290,7 @@ func ATR(symbol string, section string, t time.Time, limit int32) float32 {
 func Unit(symbol string, price float32, section string, total float32, limit int32, t time.Time) float32 {
 	var unit float32
 
-	atr := ATR(symbol, section, t, limit)
+	atr := ATR(symbol, section, limit)
 	unit = (total * price) / (200.0 * atr)
 
 	//(ATR太小) 每次加仓最大账户 1/5
