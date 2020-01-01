@@ -205,9 +205,8 @@ func Account(symbol string, total string) {
 			xorm := orm.NewXOrm()
 			local := xorm.Account(symbol)
 
-			// 账户余额 * 倍数
-			// equity := util.StringToFloat32(account.Info.Btc.Equity) * times
-			equity := util.StringToFloat32(total) * times
+			// 账户总额
+			equity := util.StringToFloat32(total)
 			local.Total = equity
 
 			if local.Symbol == "" {
@@ -367,7 +366,7 @@ func Buy(symbol string, strategy string, op int32, price float32, size float32, 
 		if buySize == 0 {
 			BuyRecord(symbol, strategy, op, price, size, canUnit, t)
 		} else {
-			var dif float32 = 30.0 // 滑点大些，在波动大的行情才能买进
+			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
 			if op == 1 {
@@ -551,7 +550,7 @@ func BuySize(price float32, buyunit float32) float32 {
 		if amout < 1.0 {
 			size = 1.0
 		} else {
-			size = util.Floor(price * buyunit / 100.0)
+			size = util.Floor(amout)
 		}
 	}
 	return size
@@ -596,7 +595,7 @@ func ProfitRate(profit float32, lastused float32) float32 {
 	if lastused == 0 {
 		value = 0.0
 	} else {
-		value = profit / lastused * times * 100.0
+		value = profit / lastused * 100.0
 	}
 	return value
 }
