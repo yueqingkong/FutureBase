@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	fee   float32 = 0.002 // 手续费+交易滑点
-	times float32 = 10.0  // 合约倍数
+	fee     float32 = 0.002 // 手续费+交易滑点
+	times   float32 = 10.0  // 合约倍数
+	MaxLoss float32 = 400   // 最高点最大回撤
+	MaxBuy  float32 = 0.8   // 最大层位
 )
 
 /**
@@ -281,23 +283,13 @@ func ATR(symbol string, section string, limit int32) float32 {
 }
 
 /**
- * 买入单位,回撤 ATR 亏损比例（暂时每次 最大回测 1）
+ * 买入单位,回撤 ATR 亏损比例
  * rate*Total = atr/price * Unit
- * rate: 总账户最大亏损(总账户的0.01)
- * atr/price 回撤(高位最大回撤 0.04）
+ * rate: 总账户最大亏损(总账户 满足连续最大亏损20次)
+ * atr/price 回撤(高位最大回撤 0.04)
  */
-func Unit(symbol string, price float32, section string, total float32, limit int32, t time.Time) float32 {
-	var unit float32
-
-	atr := ATR(symbol, section, limit)
-	unit = (total * price) / (200.0 * atr)
-
-	//(ATR太小) 每次加仓最大账户 1/5
-	if unit > total/5.0 {
-		unit = total / 5.0
-	} else if unit < total/10.0 {
-		unit = total / 10.0
-	}
+func Unit(price float32, total float32) float32 {
+	unit := (total * price) / (20.0 * MaxLoss)
 	return unit
 }
 
