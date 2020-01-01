@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	log.Println("FutureBase start...")
+	log.Println("Test start...")
 }
