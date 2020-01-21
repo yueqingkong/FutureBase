@@ -21,7 +21,7 @@ type OkexTrade struct {
 type FutureStrategy interface {
 	Name() string
 	Tick(symbol string, price float32, t time.Time)
-	Buy(symbol string, op int32, price float32, t time.Time)
+	Buy(symbol string, op int32, price float32, explain string,t time.Time)
 }
 
 /**
