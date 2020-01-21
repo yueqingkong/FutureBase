@@ -3,12 +3,6 @@
 *.swp
 *.swo
 *.log
-.vscode
-test_*.go
-block-guess
-banners
-avatars
-app
 
 go.sum
 FutureBase

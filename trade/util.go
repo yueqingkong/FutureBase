@@ -12,7 +12,7 @@ import (
 
 var (
 	fee     float32 = 0.002 // 手续费+交易滑点
-	times   float32 = 10.0  // 合约倍数
+	Times   float32 = 10.0  // 合约倍数
 	MaxLoss float32 = 400   // 最高点最大回撤
 	MaxBuy  float32 = 0.8   // 最大层位
 )
@@ -345,18 +345,18 @@ func KeepToRedis(key string, value string) {
 	}
 }
 
-func Buy(symbol string, strategy string, op int32, price float32, size float32, canUnit float32, t time.Time) {
+func Buy(symbol string, strategy string, op int32, price float32, size float32, canUnit float32, show string, t time.Time) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
 	instrumentid := syncMap.GetInstrument(symbol)
 	if mode == "test" {
-		BuyRecord(symbol, strategy, op, price, size, canUnit, t)
+		BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
 	} else if mode == "release" {
 		buySize := int32(size)
 
 		if buySize == 0 {
-			BuyRecord(symbol, strategy, op, price, size, canUnit, t)
+			BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
 		} else {
 			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
 
@@ -373,7 +373,7 @@ func Buy(symbol string, strategy string, op int32, price float32, size float32, 
 				log.Println("[Buy] err: ", err)
 			} else if result.Result { // 张数为0 result.Result=false 未能立马全部成交，返回的数据跟成交成功一样，不能区分
 				// 未能立马全部成交，返回的数据跟成交成功一样，不能区分
-				BuyRecord(symbol, strategy, op, price, size, canUnit, t)
+				BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
 			} else {
 				log.Print("[Buy] result = false, ", result)
 			}
@@ -384,7 +384,7 @@ func Buy(symbol string, strategy string, op int32, price float32, size float32, 
 /**
  * 开仓记录
  */
-func BuyRecord(symbol string, strategy string, op int32, price float32, canSize float32, canUnit float32, t time.Time) {
+func BuyRecord(symbol string, strategy string, op int32, price float32, canSize float32, canUnit float32, show string, t time.Time) {
 	xorm := orm.NewXOrm()
 
 	// 账户变更
@@ -433,7 +433,7 @@ func BuyRecord(symbol string, strategy string, op int32, price float32, canSize 
 	}
 
 	accountAfter := fmt.Sprintf("[account-after] Used: %f,Balance: %f", account.Buy, account.Balance)
-	explain := accountBefore + Explain(t, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0.0, 0.0, 0.0) + accountAfter
+	explain := accountBefore + Explain(t, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0.0, 0.0, 0.0) + show + accountAfter
 
 	xorm.InsertRecord(symbol, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
 }
