@@ -197,29 +197,24 @@ func Account(symbol string, total string) {
 			xorm.InsertAccount(account)
 		}
 	} else if mode == "release" {
-		futures := plat.NewOKexFuture()
-		account, err := futures.Account()
-		log.Print(account)
+		xorm := orm.NewXOrm()
+		local := xorm.Account(symbol)
 
-		if err != nil {
-			log.Println("[Account]", err)
+		// 账户总额
+		equity := util.StringToFloat32(total)
+		if equity < 0.0 { // 金额不为0 ,如果小于0 金额不变
+			return
+		}
+
+		local.Total = equity
+		if local.Symbol == "" {
+			local.Symbol = symbol
+			local.Buy = 0.0
+			local.Balance = equity
+			xorm.InsertAccount(local)
 		} else {
-			xorm := orm.NewXOrm()
-			local := xorm.Account(symbol)
-
-			// 账户总额
-			equity := util.StringToFloat32(total)
-			local.Total = equity
-
-			if local.Symbol == "" {
-				local.Symbol = symbol
-				local.Buy = 0.0
-				local.Balance = equity
-				xorm.InsertAccount(local)
-			} else {
-				local.Balance = equity - local.Buy
-				xorm.UpdateAccount(local)
-			}
+			local.Balance = equity - local.Buy
+			xorm.UpdateAccount(local)
 		}
 	}
 }

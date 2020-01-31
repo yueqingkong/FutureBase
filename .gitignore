@@ -3,6 +3,7 @@
 *.swp
 *.swo
 *.log
+.idea/workspace.xml
 
 go.sum
 FutureBase
