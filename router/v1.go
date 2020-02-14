@@ -33,5 +33,6 @@ func (r Router) v1(engine *gin.Engine) {
 	{
 		app.GET("/account", Account)
 		app.GET("/records", Records)
+		app.GET("/kline", KLine)
 	}
 }

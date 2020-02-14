@@ -52,27 +52,21 @@ type Record struct {
 	CreateTime time.Time `xorm:"DateTime"` // 时间
 }
 
-/**
- * key-value
- */
+// key-value
 type Redis struct {
 	Id int64
 	K  string `xorm:"varchar(255) notnull unique"` // key
 	V  string `xorm:"varchar(255)"`                // value
 }
 
-/**
- * 推送设备
- */
+// 推送设备
 type Device struct {
 	Id    int64
 	Name  string `xorm:"varchar(255) notnull unique"` // 设备名称
 	Token string `xorm:"varchar(255)"`                // 推送Token
 }
 
-/**
- * 合约信息
- */
+// 合约信息
 type Instrument struct {
 	Id       int64
 	Symbol   string    `xorm:"varchar(255)"`
@@ -247,6 +241,7 @@ func (orm XOrm) BeforeBy(symbol string, period string, start time.Time, limit in
 	return newCoins
 }
 
+// 上一根kline
 func (orm XOrm) Last(symbol string, period string) Coin {
 	coins := make([]Coin, 0)
 	err := engine.Where("symbol = ? and period = ?", symbol, period).
@@ -265,10 +260,8 @@ func (orm XOrm) Last(symbol string, period string) Coin {
 	return lastCoin
 }
 
-/**
- * 查询给定时间之后的k线
- * start 为空，返回所有
- */
+// 查询给定时间之后的k线
+// start 为空，返回所有
 func (orm XOrm) Next(symbol string, period string, start time.Time) []Coin {
 	coins := make([]Coin, 0)
 
@@ -289,9 +282,7 @@ func (orm XOrm) Next(symbol string, period string, start time.Time) []Coin {
 	return coins
 }
 
-/**
- * 交易记录
- */
+// 最近交易记录
 func (orm XOrm) LastRecord(symbol string, strategy string, limit int32) []Record {
 	records := make([]Record, 0)
 	err := engine.Where("symbol = ? and strategy = ?", symbol, strategy).
@@ -306,9 +297,7 @@ func (orm XOrm) LastRecord(symbol string, strategy string, limit int32) []Record
 	return records
 }
 
-/**
- * 交易记录
- */
+// 交易记录
 func (orm XOrm) Records(symbol string, strategy string) []Record {
 	records := make([]Record, 0)
 	err := engine.Where("symbol = ? and strategy = ?", symbol, strategy).
@@ -330,9 +319,7 @@ func (orm XOrm) RecordsAll() []Record {
 	return records
 }
 
-/**
- * 合约信息
- */
+// 合约信息
 func (orm XOrm) Instrument(symbol string) Instrument {
 	instruments := make([]Instrument, 0)
 	err := engine.Where("symbol = ?", symbol).
@@ -349,9 +336,7 @@ func (orm XOrm) Instrument(symbol string) Instrument {
 	return instrument
 }
 
-/**
- * 所有推送设备
- */
+// 所有推送设备
 func (xorm XOrm) Deveices() []Device {
 	devices := make([]Device, 0)
 	err := engine.Find(&devices)
@@ -361,9 +346,7 @@ func (xorm XOrm) Deveices() []Device {
 	return devices
 }
 
-/**
- * key-value
- */
+// key-value
 func (orm XOrm) Redis(key string) Redis {
 	rediss := make([]Redis, 0)
 	err := engine.Where("k = ?", key).
@@ -420,9 +403,7 @@ func (orm XOrm) ClearAccount() {
 	}
 }
 
-/**
- * 清空交易记录
- */
+// 清空交易记录
 func (orm XOrm) ClearRecords() {
 	sql := "delete from margin_record"
 	_, err := engine.Exec(sql)
