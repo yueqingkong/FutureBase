@@ -45,7 +45,7 @@ type Record struct {
 	Used       float32   `xorm:"float"`        // 已开仓Token
 	Size       float32   `xorm:"float"`        // 开仓张数
 	Total      float32   `xorm:"float"`        // 当前账户总值
-	Explain    string    `xorm:"varchar(255)"` // 描述 usd->token | ust<-token
+	Explain    string    `xorm:"text"`         // 描述 usd->token | ust<-token
 	Profit     float32   `xorm:"float"`        //收益
 	ProfitRate float32   `xorm:"float"`        //收益率
 	Timestamp  int64     `xorm:"bigint"`

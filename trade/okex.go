@@ -60,7 +60,7 @@ func (trade OkexTrade) StartTrade(strategy FutureStrategy) {
 
 			for _, symbol := range trade.Symbols() {
 				// 同步最新K线
-				Pulls(symbol, "6h", "12h", "1d")
+				Pulls(symbol, "30m", "1h", "2h", "4h", "6h", "12h", "1d")
 				trade.TickTrend(symbol, strategy)
 			}
 		}
