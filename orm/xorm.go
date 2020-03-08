@@ -12,22 +12,22 @@ import (
 // K线数据
 type Coin struct {
 	Id         int64
-	Symbol     string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"`
-	Plat       string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"`
-	Period     string    `xorm:"varchar(255) unique(symbol,plat,period,timestamp)"` // 时间间隔
+	Symbol     string    `xorm:"varchar(255) index index(symbol,period) index(symbol,period,timestamp)"`
+	Plat       string    `xorm:"varchar(255) index"`
+	Period     string    `xorm:"varchar(255) index index(symbol,period) index(symbol,period,timestamp)"` // 时间间隔
 	Open       float32   `xorm:"float"`
 	Close      float32   `xorm:"float"`
 	High       float32   `xorm:"float"`
 	Low        float32   `xorm:"float"`
 	Volume     float32   `xorm:"float"`
-	Timestamp  int64     `xorm:"bigint unique(symbol,plat,period,timestamp))"`
+	Timestamp  int64     `xorm:"bigint index index(symbol,period) index(symbol,period,timestamp)"`
 	CreateTime time.Time `xorm:"DATETIME"`
 }
 
 // 账户
 type Account struct {
 	Id      int64
-	Symbol  string  `xorm:"varchar(255) unique"` // Token
+	Symbol  string  `xorm:"varchar(255) index"` // Token
 	Balance float32 `xorm:"float"`               // 可用Token余额(张)
 	Buy     float32 `xorm:"float"`               // 已使用Token(张)
 	Total   float32 `xorm:"float"`               // 总值
@@ -36,18 +36,18 @@ type Account struct {
 // 交易记录
 type Record struct {
 	Id         int64
-	Symbol     string    `xorm:"varchar(255)"` // Token
-	Strategy   string    `xorm:"varchar(255)"` // 周期
-	Operation  int32     `xorm:"int"`          // 1: 开多 2: 开空 3: 平仓
-	Position   int32     `xorm:"int"`          // 加仓层数
-	Price      float32   `xorm:"float"`        // 当前价格
-	AvgPrice   float32   `xorm:"float"`        // 均价
-	Used       float32   `xorm:"float"`        // 已开仓Token
-	Size       float32   `xorm:"float"`        // 开仓张数
-	Total      float32   `xorm:"float"`        // 当前账户总值
-	Explain    string    `xorm:"text"`         // 描述 usd->token | ust<-token
-	Profit     float32   `xorm:"float"`        //收益
-	ProfitRate float32   `xorm:"float"`        //收益率
+	Symbol     string    `xorm:"varchar(255) index(symbol,strategy)"` // Token
+	Strategy   string    `xorm:"varchar(255) index(symbol,strategy)"` // 周期
+	Operation  int32     `xorm:"int"`                                 // 1: 开多 2: 开空 3: 平仓
+	Position   int32     `xorm:"int"`                                 // 加仓层数
+	Price      float32   `xorm:"float"`                               // 当前价格
+	AvgPrice   float32   `xorm:"float"`                               // 均价
+	Used       float32   `xorm:"float"`                               // 已开仓Token
+	Size       float32   `xorm:"float"`                               // 开仓张数
+	Total      float32   `xorm:"float"`                               // 当前账户总值
+	Explain    string    `xorm:"text"`                                // 描述 usd->token | ust<-token
+	Profit     float32   `xorm:"float"`                               //收益
+	ProfitRate float32   `xorm:"float"`                               //收益率
 	Timestamp  int64     `xorm:"bigint"`
 	CreateTime time.Time `xorm:"DateTime"` // 时间
 }
@@ -69,7 +69,7 @@ type Device struct {
 // 合约信息
 type Instrument struct {
 	Id       int64
-	Symbol   string    `xorm:"varchar(255)"`
+	Symbol   string    `xorm:"varchar(255) index"`
 	Period   string    `xorm:"varchar(255)"`
 	Key      string    `xorm:"varchar(255)"` // 合约id
 	Delivery time.Time `xorm:"DateTime"`     // 交割时间
