@@ -11,6 +11,7 @@ require (
 	github.com/chenjiandongx/go-echarts v0.0.0-20190728043558-70059cac90d5
 	github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3 // indirect
 	github.com/gin-gonic/gin v1.3.0
+	github.com/go-resty/resty v1.12.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.6
 	github.com/gobuffalo/packr v1.30.1 // indirect
@@ -21,5 +22,6 @@ require (
 	github.com/yueqingkong/Okex v0.0.5
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
+	gopkg.in/ini.v1 v1.46.0 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
 )
