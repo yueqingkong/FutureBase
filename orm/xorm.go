@@ -231,8 +231,6 @@ func (orm XOrm) BeforeBy(symbol string, period string, start time.Time, limit in
 		log.Print("[Before]", err)
 	}
 
-	log.Println(timestamp, coins)
-
 	// 重新排序
 	newCoins := make([]Coin, 0)
 	for index := len(coins) - 1; index >= 0; index-- {
