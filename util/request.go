@@ -1,4 +1,4 @@
-package plat
+package util
 
 import (
 	"encoding/json"
@@ -12,12 +12,13 @@ func Get(url string, headers map[string]string, inter interface{}) error {
 	if headers == nil {
 		headers = make(map[string]string)
 		headers["Content-Type"] = "application/x-www-form-urlencoded"
+		headers["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
 	}
 
 	resp, err := resty.New().SetTimeout(time.Minute * 1).R().
 		SetHeaders(headers).
 		Get(url)
-	// log.Print("[Get]",resp.String())
+	// log.Println("[Get]", resp.String())
 
 	err = json.Unmarshal(resp.Body(), &inter)
 	if err != nil {
@@ -31,12 +32,14 @@ func Post(url string, headers map[string]string, params interface{}, inter inter
 	if headers == nil {
 		headers = make(map[string]string)
 		headers["Content-Type"] = "application/x-www-form-urlencoded"
+		headers["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
 	}
 
 	resp, err := resty.New().SetTimeout(time.Minute * 1).R().
 		SetHeaders(headers).
 		SetBody(params).
 		Post(url)
+	// log.Println("[PostForm]",resp.String())
 
 	if inter != nil {
 		err = json.Unmarshal(resp.Body(), &inter)
@@ -52,6 +55,7 @@ func PostForm(url string, headers map[string]string, params map[string]string, i
 	if headers == nil {
 		headers = make(map[string]string)
 		headers["Content-Type"] = "application/x-www-form-urlencoded"
+		headers["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
 	}
 
 	resp, err := resty.New().SetTimeout(time.Minute * 1).R().
@@ -62,7 +66,7 @@ func PostForm(url string, headers map[string]string, params map[string]string, i
 	if err != nil {
 		log.Print("[PostForm]", err, "[url]", url)
 	}
-	// log.Print("[PostForm]",resp.String())
+	// log.Println("[PostForm]",resp.String())
 
 	if inter != nil {
 		err = json.Unmarshal(resp.Body(), &inter)

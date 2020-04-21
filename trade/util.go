@@ -2,11 +2,10 @@ package trade
 
 import (
 	"fmt"
+	"gitee.com/shieldpu_futures/FutureBase/base"
 	"gitee.com/shieldpu_futures/FutureBase/orm"
 	"gitee.com/shieldpu_futures/FutureBase/util"
-	"github.com/yueqingkong/Okex/plat"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -16,166 +15,6 @@ var (
 	MaxLoss float32 = 400   // 最高点最大回撤
 	MaxBuy  float32 = 0.8   // 最大层位
 )
-
-/**
- * 获取季度合约id
- */
-func Instrument(symbol string) string {
-	var instrumentid string
-
-	future := plat.NewOKexFuture()
-	instruments := future.Instruments()
-	for _, value := range instruments {
-		lower := util.Lower(value.UnderlyingIndex)
-		id := value.InstrumentID
-		alias := value.Alias
-		delivery := util.StringYearToTime(value.Delivery)
-
-		if value.Alias == "quarter" && value.IsInverse == "true" { // 季度
-			// 同步 合约信息
-			xorm := orm.NewXOrm()
-			instrument := xorm.Instrument(lower)
-			instrument.Key = id
-			instrument.Delivery = delivery
-			instrument.Period = alias
-			if instrument.Symbol == "" {
-				instrument.Symbol = lower
-				xorm.InsertInstrument(instrument)
-			} else {
-				xorm.UpdateInstrument(instrument)
-			}
-
-			syncMap := orm.NewSyncMap()
-			syncMap.SetInstrument(lower, id)
-
-			if lower == symbol {
-				instrumentid = id
-			}
-		}
-	}
-
-	return instrumentid
-}
-
-func Pulls(symbol string, srctions ...string) {
-	for _, value := range srctions {
-		PullHistory(symbol, value)
-	}
-}
-
-/**
- * 同步 历史kline数据
- */
-func PullHistory(symbol string, section string) {
-	xorm := orm.XOrm{}
-	lastCoin := xorm.Last(symbol, section)
-
-	var startTime time.Time
-	if lastCoin.Symbol == "" { // 记录为空
-		startTime = time.Time{}
-	} else {
-		startTime = lastCoin.CreateTime
-	}
-
-	// 最后一条记录是昨天的
-	diffHours := time.Now().Sub(startTime).Hours()
-	// log.Print("[PullHistory] diffHours: ", diffHours)
-
-	// 是否最新的数据
-	if section == "30m" {
-		if diffHours < 1 {
-			return
-		}
-	} else if section == "1h" {
-		if diffHours < 2 {
-			return
-		}
-	} else if section == "2h" {
-		if diffHours < 4 {
-			return
-		}
-	} else if section == "4h" {
-		if diffHours < 8 {
-			return
-		}
-	} else if section == "6h" {
-		if diffHours < 12 {
-			return
-		}
-	} else if section == "12h" {
-		if diffHours < 24 {
-			return
-		}
-	} else if section == "1d" {
-		if diffHours < 48 {
-			return
-		}
-	}
-
-	log.Print("[PullHistory] ", symbol, "  diffHours: ", diffHours, " section: ", section)
-	api := plat.NewOKexFuture()
-
-	// 避免重复返回最后一条的k线数据，加30s
-	if !startTime.IsZero() {
-		startTime = startTime.Add(time.Duration(30) * time.Second)
-	}
-
-	syncMap := orm.NewSyncMap()
-	instrumentid := syncMap.GetInstrument(symbol)
-	if instrumentid == "" {
-		instrumentid = Instrument(symbol)
-	}
-
-	klines, err := api.Candle(instrumentid, section, startTime)
-	if err != nil { // 重新获取 instrumentid
-		instrumentid = Instrument(symbol)
-		klines, _ = api.Candle(instrumentid, section, startTime)
-	}
-
-	coins := klineToCoin(symbol, section, klines)
-	if len(coins) == 0 {
-		log.Print("[PullHistory] len(coins) == 0 ")
-	} else {
-		xorm.InsertCoins(coins)
-		PullHistory(symbol, section)
-	}
-}
-
-/**
- * k线数据 -> orm.Coin
- * okex 的kline 是倒序的，最近的时间的在最前面
- */
-func klineToCoin(symbol string, section string, kline plat.FutureCandles) []orm.Coin {
-	var coins = make([]orm.Coin, 0)
-
-	for k, value := range kline {
-		var arr = value
-		var open, _ = strconv.ParseFloat(arr[1].(string), 32)
-		var close, _ = strconv.ParseFloat(arr[4].(string), 32)
-		var high, _ = strconv.ParseFloat(arr[2].(string), 32)
-		var low, _ = strconv.ParseFloat(arr[3].(string), 32)
-		var volume, _ = strconv.ParseFloat(arr[5].(string), 32)
-		var createtime, _ = util.IsoToTime(arr[0].(string))
-
-		if k != 0 { // 最近时间一条有效的K线不保存
-			var coin = orm.Coin{
-				Symbol:     symbol,
-				Plat:       "okex",
-				Period:     section,
-				Open:       float32(open),
-				Close:      float32(close),
-				High:       float32(high),
-				Low:        float32(low),
-				Volume:     float32(volume),
-				Timestamp:  createtime.Unix(),
-				CreateTime: createtime,
-			}
-
-			coins = append(coins, coin)
-		}
-	}
-	return coins
-}
 
 /**
  * 同步账号
@@ -340,37 +179,30 @@ func KeepToRedis(key string, value string) {
 	}
 }
 
-func Buy(symbol string, strategy string, op int32, price float32, size float32, canUnit float32, show string, t time.Time) {
+func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, size float32, canUnit float32, show string, t time.Time) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
-	instrumentid := syncMap.GetInstrument(symbol)
 	if mode == "test" {
-		BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
+		BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
 	} else if mode == "release" {
 		buySize := int32(size)
 
 		if buySize == 0 {
-			BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
+			BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
 		} else {
 			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
-			if op == 1 {
+			if operation == base.BUY_LONG {
 				orderPrice = price + dif
-			} else if op == 2 {
+			} else if operation == base.BUY_SHORT {
 				orderPrice = price - dif
 			}
 
-			futures := plat.NewOKexFuture()
-			result, err := futures.Order(instrumentid, op, 2, orderPrice, buySize, 0)
-			if err != nil {
-				log.Println("[Buy] err: ", err)
-			} else if result.Result { // 张数为0 result.Result=false 未能立马全部成交，返回的数据跟成交成功一样，不能区分
-				// 未能立马全部成交，返回的数据跟成交成功一样，不能区分
-				BuyRecord(symbol, strategy, op, price, size, canUnit, show, t)
-			} else {
-				log.Print("[Buy] result = false, ", result)
+			success := plat.Order(cnotract, symbol, operation, orderPrice, int32(size))
+			if success { // 未能立马全部成交，返回的数据跟成交成功一样，不能区分
+				BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
 			}
 		}
 	}
@@ -379,17 +211,19 @@ func Buy(symbol string, strategy string, op int32, price float32, size float32, 
 /**
  * 开仓记录
  */
-func BuyRecord(symbol string, strategy string, op int32, price float32, canSize float32, canUnit float32, show string, t time.Time) {
+func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, canSize float32, canUnit float32, show string, t time.Time) {
+	s := plat.Symbol(symbol)
+
 	xorm := orm.NewXOrm()
 
 	// 账户变更
-	account := xorm.Account(symbol)
+	account := xorm.Account(s)
 	buyOld := account.Buy
 	balanceOld := account.Balance
 	accountBefore := fmt.Sprintf("[account-before] Used: %f,Balance: %f, buyUnit: %f", buyOld, balanceOld, canUnit)
 
 	account.Buy = buyOld + canUnit
-	account.Balance = balanceOld - canUnit - PayFee(price, canUnit)
+	account.Balance = balanceOld - canUnit - PayFee(price, canUnit, ZDollar(s))
 
 	total := account.Buy + account.Balance
 	account.Total = total
@@ -401,7 +235,7 @@ func BuyRecord(symbol string, strategy string, op int32, price float32, canSize 
 	var totalUsed float32
 	var totalSize float32
 
-	records := xorm.LastRecord(symbol, strategy, 1)
+	records := xorm.LastRecord(s, strategy, 1)
 	if len(records) == 0 || records[0].Operation == 3 || records[0].Operation == 4 {
 		position = int32(1)
 		avgPrce = price
@@ -427,23 +261,27 @@ func BuyRecord(symbol string, strategy string, op int32, price float32, canSize 
 		totalSize = lastSize + canSize
 	}
 
+	op := plat.ORDER(operation)
+
 	accountAfter := fmt.Sprintf("[account-after] Used: %f,Balance: %f", account.Buy, account.Balance)
 	explain := accountBefore + Explain(t, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0.0, 0.0, 0.0) + show + accountAfter
 
-	xorm.InsertRecord(symbol, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
+	xorm.InsertRecord(s, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
 }
 
 /**
  * 平仓
  * op 1: 开多 2: 开空 3: 平多 4: 平空
  */
-func Sell(symbol string, strategy string, op int32, price float32, t time.Time) {
+func Sell(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, t time.Time) {
+	s := plat.Symbol(symbol)
+
 	xorm := orm.NewXOrm()
-	account := xorm.Account(symbol)
+	account := xorm.Account(s)
 	buyOld := account.Buy
 	balanceOld := account.Balance
 
-	records := xorm.LastRecord(symbol, strategy, 1)
+	records := xorm.LastRecord(s, strategy, 1)
 
 	accountBefore := fmt.Sprintf("[account-before] Used: %f,Balance: %f", buyOld, balanceOld)
 	log.Print(accountBefore)
@@ -459,30 +297,24 @@ func Sell(symbol string, strategy string, op int32, price float32, t time.Time) 
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
-	instrumentid := syncMap.GetInstrument(symbol)
 	if mode == "test" {
-		SellRecord(symbol, strategy, op, price, t)
+		SellRecord(plat, symbol, strategy, operation, price, t)
 	} else if mode == "release" {
 		if lastSize == 0 { // 开的空值单
-			SellRecord(symbol, strategy, op, price, t)
+			SellRecord(plat, symbol, strategy, operation, price, t)
 		} else {
 			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
-			if op == 3 {
+			if operation == base.SELL_LONG {
 				orderPrice = price - dif
-			} else if op == 4 {
+			} else if operation == base.SELL_SHORT {
 				orderPrice = price + dif
 			}
 
-			futures := plat.NewOKexFuture()
-			result, err := futures.Order(instrumentid, op, 2, orderPrice, int32(lastSize), 0)
-			if err != nil {
-				log.Print("[Sell] err: ", err)
-			} else if result.Result {
-				SellRecord(symbol, strategy, op, price, t)
-			} else {
-				log.Print("[Sell] result =false, ", result)
+			success := plat.Order(contract, symbol, operation, orderPrice, int32(lastSize))
+			if success {
+				SellRecord(plat, symbol, strategy, operation, price, t)
 			}
 		}
 	}
@@ -491,14 +323,17 @@ func Sell(symbol string, strategy string, op int32, price float32, t time.Time) 
 /**
  * 平仓记录
  */
-func SellRecord(symbol string, strategy string, op int32, price float32, t time.Time) {
+func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, t time.Time) {
+	s := plat.Symbol(symbol)
+	o := plat.ORDER(operation)
+
 	xorm := orm.NewXOrm()
 
 	// 账户变更
-	account := xorm.Account(symbol)
+	account := xorm.Account(s)
 	accountBefore := fmt.Sprintf("[account-before] Used: %f,Balance: %f", account.Buy, account.Balance)
 
-	records := xorm.LastRecord(symbol, strategy, 1)
+	records := xorm.LastRecord(s, strategy, 1)
 	lastRecord := records[0]
 	lastPosition := lastRecord.Position
 	lastAvg := lastRecord.AvgPrice
@@ -506,10 +341,10 @@ func SellRecord(symbol string, strategy string, op int32, price float32, t time.
 	lastSize := lastRecord.Size
 
 	// 收益
-	profit := Profit(op, price, lastAvg, lastSize)
-	profitRate := ProfitRate(profit, lastUsed)
-	totlaRate := ProfitRate(profit, account.Total)
-	payfee := PayFee(price, lastSize)
+	profit := Profit(o, price, lastAvg, lastSize, ZDollar(s))
+	profitRate := ProfitRate(profit, lastUsed, ZDollar(s))
+	totlaRate := ProfitRate(profit, account.Total, ZDollar(s))
+	payfee := PayFee(price, lastSize, ZDollar(s))
 
 	account.Buy = account.Buy - lastUsed
 	account.Balance = account.Balance + lastUsed + profit - payfee
@@ -519,21 +354,21 @@ func SellRecord(symbol string, strategy string, op int32, price float32, t time.
 
 	// 交易记录
 	accountAfter := fmt.Sprintf("[account-after] Used: %f,Balance: %f", account.Buy, account.Balance)
-	explain := Explain(t, strategy, op, lastPosition, price, price, lastUsed, lastSize, total, profit, profitRate, totlaRate)
+	explain := Explain(t, strategy, o, lastPosition, price, price, lastUsed, lastSize, total, profit, profitRate, totlaRate)
 	explain = accountBefore + explain + accountAfter
 
-	xorm.InsertRecord(symbol, strategy, op, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
+	xorm.InsertRecord(s, strategy, o, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
 }
 
 /**
  * token - > 张数
  */
-func BuySize(price float32, buyunit float32) float32 {
+func BuySize(price float32, buyunit float32, zhang float32) float32 {
 	var size float32
 	if buyunit == 0.0 {
 		size = 0
 	} else {
-		amout := price * buyunit / 100.0
+		amout := price * buyunit / zhang
 		if amout < 1.0 {
 			size = 1.0
 		} else {
@@ -546,12 +381,12 @@ func BuySize(price float32, buyunit float32) float32 {
 /**
  * 支付手续费
  */
-func PayFee(price float32, size float32) float32 {
+func PayFee(price float32, size float32, zhang float32) float32 {
 	var value float32
 	if price == 0 {
 		value = 0.0
 	} else {
-		value = 100.0 / price * size * 0.0005
+		value = zhang / price * size * 0.0005
 	}
 	return value
 }
@@ -560,15 +395,15 @@ func PayFee(price float32, size float32) float32 {
  * 收益
  * op 3 平多 4 平空
  */
-func Profit(op int32, price float32, lastprice float32, size float32) float32 {
+func Profit(op int32, price float32, lastprice float32, size float32, zhang float32) float32 {
 	var profit float32
 
 	if lastprice == 0 || price == 0 || size == 0 {
 		profit = 0
 	} else if op == 3 {
-		profit = (100.0/lastprice - 100.0/price) * size
+		profit = (zhang/lastprice - zhang/price) * size
 	} else if op == 4 {
-		profit = (100.0/price - 100.0/lastprice) * size
+		profit = (zhang/price - zhang/lastprice) * size
 	}
 	return profit
 }
@@ -577,12 +412,24 @@ func Profit(op int32, price float32, lastprice float32, size float32) float32 {
  * 收益率
  * op 3 平多 4 平空
  */
-func ProfitRate(profit float32, lastused float32) float32 {
+func ProfitRate(profit float32, lastused float32, zhang float32) float32 {
 	var value float32
 	if lastused == 0 {
 		value = 0.0
 	} else {
-		value = profit / lastused * 100.0
+		value = profit / lastused * zhang
 	}
 	return value
+}
+
+// 一张 代表的面纸
+func ZDollar(symbol string) float32 {
+	var v float32
+
+	if symbol == "btc" {
+		v = 100.0
+	} else {
+		v = 10.0
+	}
+	return v
 }

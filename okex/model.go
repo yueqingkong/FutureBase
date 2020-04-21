@@ -1,6 +1,23 @@
-package plat
+package okex
 
 import "time"
+
+const (
+	CONTENT_TYPE = "Content-Type"
+	ACCEPT       = "Accept"
+	COOKIE       = "Cookie"
+	LOCALE       = "locale="
+
+	OK_ACCESS_KEY        = "OK-ACCESS-KEY"
+	OK_ACCESS_SIGN       = "OK-ACCESS-SIGN"
+	OK_ACCESS_TIMESTAMP  = "OK-ACCESS-TIMESTAMP"
+	OK_ACCESS_PASSPHRASE = "OK-ACCESS-PASSPHRASE"
+
+	APPLICATION_JSON      = "application/json"
+	APPLICATION_JSON_UTF8 = "application/json; charset=UTF-8"
+
+	ENGLISH = "en_US"
+)
 
 type Instrument []struct {
 	BaseCurrency   string `json:"base_currency"`
@@ -15,26 +32,29 @@ type Instrument []struct {
 	TickSize       string `json:"tick_size"`
 }
 
+type SpotCandles [][]interface{}
+
+
 type Depth struct {
 	Asks      [][]string `json:"asks"`
 	Bids      [][]string `json:"bids"`
 	Timestamp time.Time  `json:"timestamp"`
 }
 
-type Ticker struct {
-	BestAsk        string    `json:"best_ask"`
-	BestBid        string    `json:"best_bid"`
-	InstrumentID   string    `json:"instrument_id"`
-	ProductID      string    `json:"product_id"`
-	Last           string    `json:"last"`
-	Ask            string    `json:"ask"`
-	Bid            string    `json:"bid"`
-	Open24H        string    `json:"open_24h"`
-	High24H        string    `json:"high_24h"`
-	Low24H         string    `json:"low_24h"`
-	BaseVolume24H  string    `json:"base_volume_24h"`
-	Timestamp      time.Time `json:"timestamp"`
-	QuoteVolume24H string    `json:"quote_volume_24h"`
+type SpotTicker struct {
+	Ask            string `json:"ask"`
+	BaseVolume24h  string `json:"base_volume_24h"`
+	BestAsk        string `json:"best_ask"`
+	BestBid        string `json:"best_bid"`
+	Bid            string `json:"bid"`
+	High24h        string `json:"high_24h"`
+	InstrumentID   string `json:"instrument_id"`
+	Last           string `json:"last"`
+	Low24h         string `json:"low_24h"`
+	Open24h        string `json:"open_24h"`
+	ProductID      string `json:"product_id"`
+	QuoteVolume24h string `json:"quote_volume_24h"`
+	Timestamp      string `json:"timestamp"`
 }
 
 type Trade struct {

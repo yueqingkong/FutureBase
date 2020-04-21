@@ -9,7 +9,7 @@ import (
 func IsoTime(t time.Time) string {
 	iso := t.UTC().String()
 	isoBytes := []byte(iso)
-	iso = string(isoBytes[:10]) + "T" + string(isoBytes[11:23]) + "Z"
+	iso = string(isoBytes[:10]) + "T" + string(isoBytes[11:19]) + "Z"
 	return iso
 }
 
