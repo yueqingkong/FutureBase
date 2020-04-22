@@ -56,9 +56,6 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 	go func() {
 		// API限速规则：20次/2s
 		ticker := time.NewTicker(time.Second * 2)
-		// 同步最新K线
-		contract := self.ContractPeriod()
-		symbol := self.SymbolPair()
 
 		for range ticker.C {
 			log.Println()

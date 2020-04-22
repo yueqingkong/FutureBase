@@ -124,25 +124,25 @@ func (self *OkexFuture) Instrument(conrtact base.CONTRACT_PERIOD, symbol base.SY
 		alias := value.Alias
 		delivery := util.StringToTime(value.Delivery + " 16:00:00") // 下午四点交割
 
-		// 同步 合约信息
-		xorm := orm.NewXOrm()
-		instrument := xorm.Instrument(lower)
-		instrument.Key = id
-		instrument.Delivery = delivery
-		instrument.Period = alias
-		if instrument.Symbol == "" {
-			instrument.Symbol = lower
-			xorm.InsertInstrument(instrument)
-		} else {
-			xorm.UpdateInstrument(instrument)
-		}
-
 		if (conrtact == base.QUARTER && value.Alias == "quarter" && value.IsInverse == "true") || // 季度
 			(conrtact == base.NEX_WEEK && value.Alias == "next_week" && value.IsInverse == "true") || // 次周
 			(conrtact == base.WEEK && value.Alias == "this_week" && value.IsInverse == "true") { // 当周
 
 			syncMap := orm.NewSyncMap()
 			syncMap.SetInstrument(lower, id)
+
+			// 同步 合约信息
+			xorm := orm.NewXOrm()
+			instrument := xorm.Instrument(lower)
+			instrument.Key = id
+			instrument.Delivery = delivery
+			instrument.Period = alias
+			if instrument.Symbol == "" {
+				instrument.Symbol = lower
+				xorm.InsertInstrument(instrument)
+			} else {
+				xorm.UpdateInstrument(instrument)
+			}
 
 			if lower == util.Lower(self.Symbol(symbol)) {
 				instrumentid = id
@@ -157,7 +157,7 @@ func (self *OkexFuture) Instrument(conrtact base.CONTRACT_PERIOD, symbol base.SY
 func (self *OkexFuture) Price(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) float32 {
 	instrumentid := self.GetInstrument(contract, symbol) // 合约id
 
-	return self.Future.Price(instrumentid)
+	return self.Future.Ticker(instrumentid)
 }
 
 func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, interval base.PERIOD, st time.Time) ([][]interface{}, error) {

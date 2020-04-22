@@ -5,10 +5,8 @@ import (
 )
 
 func TestBaseTrade_Start(t *testing.T) {
-	// plat := okex.NewOkexFuture()
-
 	//baseTrade := BaseTrade{Mode: func() string {
-	//	return "release"
+	//	return "test"
 	//}, DB: func() (s string, s2 string, s3 string) {
 	//	return "margin_test", "root", "qwer1234@QW"
 	//}, InitKeys: func() []string {
@@ -20,12 +18,12 @@ func TestBaseTrade_Start(t *testing.T) {
 	//}, Port: func() string {
 	//	return "9003"
 	//}, SymbolPair: func() base.SYMBOL {
-	//	return base.BTCUSD
+	//	return base.ETHUSD
 	//}, ContractPeriod: func() base.CONTRACT_PERIOD {
 	//	return base.QUARTER
 	//}, Plat: func() base.PlatBase {
-	//	return plat
+	//	return okex.NewOkexFuture()
 	//}}
 	//
-	//baseTrade.Start(strategy)
+	//baseTrade.Start(new(Simple))
 }

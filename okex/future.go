@@ -320,13 +320,18 @@ func (self Future) TickerAll() FutureTickers {
 }
 
 // 获取某个ticker信息
-func (self Future) Ticker(symbol string) FutureTicker {
-	var api = fmt.Sprintf("/api/futures/v3/instruments/%s/ticker", symbol)
+func (self Future) Ticker(instrument string) float32 {
+	var api = fmt.Sprintf("/api/futures/v3/instruments/%s/ticker", instrument)
 	var url = self.Url + api
 
+	var price float32
 	var ticker FutureTicker
-	util.Get(url, self.header("get", api, nil), &ticker)
-	return ticker
+	err:= util.Get(url, self.header("get", api, nil), &ticker)
+	if err == nil{
+		price = util.StringToFloat32(ticker.BestBid)
+	}
+
+	return price
 }
 
 // 获取成交数据
