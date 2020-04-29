@@ -191,7 +191,7 @@ func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, 
 		if buySize == 0 {
 			BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
 		} else {
-			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
+			var dif float32 = price * 0.005 // 滑点大些，在波动大的行情才能买进 0.005
 
 			var orderPrice float32
 			if operation == base.BUY_LONG {
