@@ -62,7 +62,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			log.Println("--------------------------")
 			log.Print("[create-time]", time.Now())
 
-			self.Pulls(contract, symbol,
+			self.Pulls(plat,contract, symbol,
 				base.MIN_30,
 				base.HOUR_1, base.HOUR_2, base.HOUR_4, base.HOUR_6, base.HOUR_12,
 				base.DAY_1)
@@ -131,16 +131,16 @@ func (self BaseTrade) delivering(period base.CONTRACT_PERIOD, symbol base.SYMBOL
 	return t.After(begin) && t.Before(end)
 }
 
-func (self BaseTrade) Pulls(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, srctions ...base.PERIOD) {
+func (self BaseTrade) Pulls(plat base.PlatBase,contract base.CONTRACT_PERIOD, symbol base.SYMBOL, srctions ...base.PERIOD) {
 	for _, value := range srctions {
-		self.PullHistory(contract, symbol, value)
+		self.PullHistory(plat,contract, symbol, value)
 	}
 }
 
 /**
  * 同步 历史kline数据
  */
-func (self BaseTrade) PullHistory(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, section base.PERIOD) {
+func (self BaseTrade) PullHistory(plat base.PlatBase,contract base.CONTRACT_PERIOD, symbol base.SYMBOL, section base.PERIOD) {
 	s := self.Plat().Symbol(symbol)
 
 	xorm := orm.XOrm{}
@@ -194,10 +194,10 @@ func (self BaseTrade) PullHistory(contract base.CONTRACT_PERIOD, symbol base.SYM
 		startTime = startTime.Add(time.Duration(30) * time.Second)
 	}
 
-	klines, err := self.Plat().KLine(contract, symbol, section, startTime)
+	klines, err := plat.KLine(contract, symbol, section, startTime)
 	if err != nil { // 重新获取 instrumentid
-		self.Plat().Instrument(contract, symbol)
-		klines, _ = self.Plat().KLine(contract, symbol, section, startTime)
+		plat.Instrument(contract, symbol)
+		klines, _ = plat.KLine(contract, symbol, section, startTime)
 	}
 
 	coins := klineToCoin(s, section, klines)
@@ -205,7 +205,7 @@ func (self BaseTrade) PullHistory(contract base.CONTRACT_PERIOD, symbol base.SYM
 		log.Print("[PullHistory] len(coins) == 0 ")
 	} else {
 		xorm.InsertCoins(coins)
-		self.PullHistory(contract, symbol, section)
+		self.PullHistory(plat,contract, symbol, section)
 	}
 }
 

@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="581f6f8e-19ed-4c7d-88fa-fa173d0ca969" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trade/strategy.go" beforeDir="false" afterPath="$PROJECT_DIR$/trade/strategy.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,21 +161,5 @@
       <screen x="0" y="23" width="1680" height="947" />
     </state>
     <state x="597" y="119" width="683" height="729" key="find.popup/0.23.1680.947@0.23.1680.947" timestamp="1587218986315" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/okex/okex_future.go</url>
-          <line>120</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/okex/okex_future.go</url>
-          <line>130</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
