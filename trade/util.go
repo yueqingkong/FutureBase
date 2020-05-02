@@ -303,7 +303,7 @@ func Sell(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 		if lastSize == 0 { // 开的空值单
 			SellRecord(plat, symbol, strategy, operation, price, t)
 		} else {
-			var dif float32 = 50.0 // 滑点大些，在波动大的行情才能买进
+			var dif float32 = price * 0.005  // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
 			if operation == base.SELL_LONG {
