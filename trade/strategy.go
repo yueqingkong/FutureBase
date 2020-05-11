@@ -1,11 +1,11 @@
 package trade
 
 import (
-	"gitee.com/shieldpu_futures/FutureBase/base"
-	"gitee.com/shieldpu_futures/FutureBase/okex"
-	"gitee.com/shieldpu_futures/FutureBase/orm"
-	"gitee.com/shieldpu_futures/FutureBase/router"
-	"gitee.com/shieldpu_futures/FutureBase/util"
+	"github.com/yueqingkong/FutureBase/base"
+	"github.com/yueqingkong/FutureBase/okex"
+	"github.com/yueqingkong/FutureBase/orm"
+	"github.com/yueqingkong/FutureBase/router"
+	"github.com/yueqingkong/FutureBase/util"
 	"log"
 	"strconv"
 	"time"
@@ -62,10 +62,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			log.Println("--------------------------")
 			log.Print("[create-time]", time.Now())
 
-			self.Pulls(plat,contract, symbol,
-				base.MIN_30,
-				base.HOUR_1, base.HOUR_2, base.HOUR_4, base.HOUR_6, base.HOUR_12,
-				base.DAY_1)
+			self.Pulls(plat,contract, symbol, base.HOUR_12, base.DAY_1)
 			self.Tick(plat, contract, symbol, strategy)
 		}
 	}()

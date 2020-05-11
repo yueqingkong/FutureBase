@@ -1,8 +1,8 @@
 package router
 
 import (
-	"gitee.com/shieldpu_futures/FutureBase/orm"
-	"gitee.com/shieldpu_futures/FutureBase/util"
+	"github.com/yueqingkong/FutureBase/orm"
+	"github.com/yueqingkong/FutureBase/util"
 	"github.com/gin-gonic/gin"
 )
 

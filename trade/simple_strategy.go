@@ -1,7 +1,7 @@
 package trade
 
 import (
-	"gitee.com/shieldpu_futures/FutureBase/base"
+	"github.com/yueqingkong/FutureBase/base"
 	"log"
 	"time"
 )

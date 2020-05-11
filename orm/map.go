@@ -2,7 +2,7 @@ package orm
 
 import (
 	"fmt"
-	"gitee.com/shieldpu_futures/FutureBase/util"
+	"github.com/yueqingkong/FutureBase/util"
 	"sync"
 )
 

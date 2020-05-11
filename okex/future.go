@@ -3,8 +3,8 @@ package okex
 import (
 	"encoding/json"
 	"fmt"
-	"gitee.com/shieldpu_futures/FutureBase/base"
-	"gitee.com/shieldpu_futures/FutureBase/util"
+	"github.com/yueqingkong/FutureBase/base"
+	"github.com/yueqingkong/FutureBase/util"
 	"log"
 	"strings"
 	"time"

@@ -1,9 +1,9 @@
 package okex
 
 import (
-	"gitee.com/shieldpu_futures/FutureBase/base"
-	"gitee.com/shieldpu_futures/FutureBase/orm"
-	"gitee.com/shieldpu_futures/FutureBase/util"
+	"github.com/yueqingkong/FutureBase/base"
+	"github.com/yueqingkong/FutureBase/orm"
+	"github.com/yueqingkong/FutureBase/util"
 	"log"
 	"time"
 )

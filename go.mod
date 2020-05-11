@@ -1,4 +1,4 @@
-module gitee.com/shieldpu_futures/FutureBase
+module github.com/yueqingkong/FutureBase
 
 go 1.12
 
