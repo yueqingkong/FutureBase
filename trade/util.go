@@ -14,6 +14,7 @@ var (
 	Times   float32 = 10.0  // 合约倍数
 	MaxLoss float32 = 400   // 最高点最大回撤
 	MaxBuy  float32 = 0.8   // 最大层位
+	DIF    float32 = 0.02  // (dif)交易滑点差价
 )
 
 /**
@@ -191,7 +192,7 @@ func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, 
 		if buySize == 0 {
 			BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
 		} else {
-			var dif float32 = price * 0.005 // 滑点大些，在波动大的行情才能买进 0.005
+			var dif float32 = price * DIF // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
 			if operation == base.BUY_LONG {
@@ -303,7 +304,7 @@ func Sell(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 		if lastSize == 0 { // 开的空值单
 			SellRecord(plat, symbol, strategy, operation, price, t)
 		} else {
-			var dif float32 = price * 0.005  // 滑点大些，在波动大的行情才能买进
+			var dif float32 = price * DIF // 滑点大些，在波动大的行情才能买进
 
 			var orderPrice float32
 			if operation == base.SELL_LONG {
