@@ -36,8 +36,8 @@ type Account struct {
 // 交易记录
 type Record struct {
 	Id         int64
-	Symbol     string    `xorm:"varchar(255) index(symbol,strategy)"` // Token
-	Strategy   string    `xorm:"varchar(255) index(symbol,strategy)"` // 周期
+	Symbol     string    `xorm:"varchar(255) index index(symbol,strategy)"` // Token
+	Strategy   string    `xorm:"varchar(255) index index(symbol,strategy)"` // 周期
 	Operation  int32     `xorm:"int"`                                 // 1: 开多 2: 开空 3: 平仓
 	Position   int32     `xorm:"int"`                                 // 加仓层数
 	Price      float32   `xorm:"float"`                               // 当前价格
@@ -48,8 +48,8 @@ type Record struct {
 	Explain    string    `xorm:"text"`                                // 描述 usd->token | ust<-token
 	Profit     float32   `xorm:"float"`                               //收益
 	ProfitRate float32   `xorm:"float"`                               //收益率
-	Timestamp  int64     `xorm:"bigint"`
-	CreateTime time.Time `xorm:"DateTime"` // 时间
+	Timestamp  int64     `xorm:"bigint index"`
+	CreateTime time.Time `xorm:"DateTime index"` // 时间
 }
 
 // key-value
@@ -307,9 +307,9 @@ func (orm XOrm) Records(symbol string, strategy string) []Record {
 	return records
 }
 
-func (orm XOrm) RecordsAll() []Record {
+func (orm XOrm) RecordsAll(symbol string) []Record {
 	records := make([]Record, 0)
-	err := engine.Desc("timestamp").Find(&records)
+	err := engine.Where("symbol = ?", symbol).Desc("timestamp").Find(&records)
 
 	if err != nil {
 		log.Print("[Records]", err)

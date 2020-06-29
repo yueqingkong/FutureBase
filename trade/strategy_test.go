@@ -27,5 +27,5 @@ func TestBaseTrade_Start(t *testing.T) {
 		return okex.NewOkexFuture()
 	}}
 
-	baseTrade.Start(new(Simple))
+	baseTrade.Start(NewSimple())
 }

@@ -343,8 +343,8 @@ func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operati
 
 	// 收益
 	profit := Profit(o, price, lastAvg, lastSize, ZDollar(s))
-	profitRate := ProfitRate(profit, lastUsed, ZDollar(s))
-	totlaRate := ProfitRate(profit, account.Total, ZDollar(s))
+	profitRate := ProfitRate(profit, lastUsed)
+	totlaRate := ProfitRate(profit, account.Total)
 	payfee := PayFee(price, lastSize, ZDollar(s))
 
 	account.Buy = account.Buy - lastUsed
@@ -413,12 +413,12 @@ func Profit(op int32, price float32, lastprice float32, size float32, zhang floa
  * 收益率
  * op 3 平多 4 平空
  */
-func ProfitRate(profit float32, lastused float32, zhang float32) float32 {
+func ProfitRate(profit float32, lastused float32) float32 {
 	var value float32
 	if lastused == 0 {
 		value = 0.0
 	} else {
-		value = profit / lastused * zhang
+		value = profit / lastused * 100.0
 	}
 	return value
 }

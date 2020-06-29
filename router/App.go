@@ -1,9 +1,9 @@
 package router
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/yueqingkong/FutureBase/orm"
 	"github.com/yueqingkong/FutureBase/util"
-	"github.com/gin-gonic/gin"
 )
 
 // 账户信息
@@ -20,8 +20,13 @@ func Account(context *gin.Context) {
 
 // 交易记录
 func Records(context *gin.Context) {
+	symbol := context.Query("symbol")
+	if symbol == "" {
+		symbol = "btc"
+	}
+
 	xorm := orm.NewXOrm()
-	records := xorm.RecordsAll()
+	records := xorm.RecordsAll(symbol)
 
 	context.JSON(200, gin.H{
 		"code":    2000,

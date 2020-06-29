@@ -55,14 +55,14 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 
 	go func() {
 		// API限速规则：20次/2s
-		ticker := time.NewTicker(time.Second * 2)
+		ticker := time.NewTicker(time.Second * 1)
 
 		for range ticker.C {
 			log.Println()
 			log.Println("--------------------------")
 			log.Print("[create-time]", time.Now())
 
-			self.Pulls(plat,contract, symbol, base.HOUR_12, base.DAY_1)
+			self.Pulls(plat,contract, symbol, base.MIN_30,base.HOUR_6,base.HOUR_12, base.DAY_1)
 			self.Tick(plat, contract, symbol, strategy)
 		}
 	}()
