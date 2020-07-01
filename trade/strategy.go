@@ -26,7 +26,7 @@ type BaseTrade struct {
 type FutureStrategy interface {
 	Name() string
 	Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, price float32, t time.Time)
-	Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, op base.ORDER, price float32, explain string, t time.Time)
+	Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, order int32, op base.ORDER, price float32, explain string, t time.Time)
 }
 
 // 运行策略
@@ -62,7 +62,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			log.Println("--------------------------")
 			log.Print("[create-time]", time.Now())
 
-			self.Pulls(plat,contract, symbol, base.MIN_30,base.HOUR_6,base.HOUR_12, base.DAY_1)
+			self.Pulls(plat, contract, symbol, base.MIN_30, base.HOUR_6, base.HOUR_12, base.DAY_1)
 			self.Tick(plat, contract, symbol, strategy)
 		}
 	}()
@@ -107,7 +107,7 @@ func (self BaseTrade) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, sy
  */
 func (self BaseTrade) price(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL) float32 {
 	// 获取当前价格
-	priceLimits := plat.Price(contract,symbol)
+	priceLimits := plat.Price(contract, symbol)
 	if priceLimits == 0 { // 获取失败(可能 合约id为错误)
 		plat.Instrument(contract, symbol)
 		return 0.0
@@ -128,16 +128,16 @@ func (self BaseTrade) delivering(period base.CONTRACT_PERIOD, symbol base.SYMBOL
 	return t.After(begin) && t.Before(end)
 }
 
-func (self BaseTrade) Pulls(plat base.PlatBase,contract base.CONTRACT_PERIOD, symbol base.SYMBOL, srctions ...base.PERIOD) {
+func (self BaseTrade) Pulls(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, srctions ...base.PERIOD) {
 	for _, value := range srctions {
-		self.PullHistory(plat,contract, symbol, value)
+		self.PullHistory(plat, contract, symbol, value)
 	}
 }
 
 /**
  * 同步 历史kline数据
  */
-func (self BaseTrade) PullHistory(plat base.PlatBase,contract base.CONTRACT_PERIOD, symbol base.SYMBOL, section base.PERIOD) {
+func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, section base.PERIOD) {
 	s := self.Plat().Symbol(symbol)
 
 	xorm := orm.XOrm{}
@@ -202,7 +202,7 @@ func (self BaseTrade) PullHistory(plat base.PlatBase,contract base.CONTRACT_PERI
 		log.Print("[PullHistory] len(coins) == 0 ")
 	} else {
 		xorm.InsertCoins(coins)
-		self.PullHistory(plat,contract, symbol, section)
+		self.PullHistory(plat, contract, symbol, section)
 	}
 }
 

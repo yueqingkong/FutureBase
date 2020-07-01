@@ -28,26 +28,27 @@ type Coin struct {
 type Account struct {
 	Id      int64
 	Symbol  string  `xorm:"varchar(255) index"` // Token
-	Balance float32 `xorm:"float"`               // 可用Token余额(张)
-	Buy     float32 `xorm:"float"`               // 已使用Token(张)
-	Total   float32 `xorm:"float"`               // 总值
+	Balance float32 `xorm:"float"`              // 可用Token余额(张)
+	Buy     float32 `xorm:"float"`              // 已使用Token(张)
+	Total   float32 `xorm:"float"`              // 总值
 }
 
 // 交易记录
 type Record struct {
 	Id         int64
 	Symbol     string    `xorm:"varchar(255) index index(symbol,strategy)"` // Token
-	Strategy   string    `xorm:"varchar(255) index index(symbol,strategy)"` // 周期
-	Operation  int32     `xorm:"int"`                                 // 1: 开多 2: 开空 3: 平仓
-	Position   int32     `xorm:"int"`                                 // 加仓层数
-	Price      float32   `xorm:"float"`                               // 当前价格
-	AvgPrice   float32   `xorm:"float"`                               // 均价
-	Used       float32   `xorm:"float"`                               // 已开仓Token
-	Size       float32   `xorm:"float"`                               // 开仓张数
-	Total      float32   `xorm:"float"`                               // 当前账户总值
-	Explain    string    `xorm:"text"`                                // 描述 usd->token | ust<-token
-	Profit     float32   `xorm:"float"`                               //收益
-	ProfitRate float32   `xorm:"float"`                               //收益率
+	Strategy   string    `xorm:"varchar(255) index index(symbol,strategy)"` // 策略名称
+	Order      int32     `xorm:"int"`                                       // 策略类型(扩展)
+	Operation  int32     `xorm:"int"`                                       // 1: 开多 2: 开空 3: 平仓
+	Position   int32     `xorm:"int"`                                       // 加仓层数
+	Price      float32   `xorm:"float"`                                     // 当前价格
+	AvgPrice   float32   `xorm:"float"`                                     // 均价
+	Used       float32   `xorm:"float"`                                     // 已开仓Token
+	Size       float32   `xorm:"float"`                                     // 开仓张数
+	Total      float32   `xorm:"float"`                                     // 当前账户总值
+	Explain    string    `xorm:"text"`                                      // 描述 usd->token | ust<-token
+	Profit     float32   `xorm:"float"`                                     // 收益
+	ProfitRate float32   `xorm:"float"`                                     // 收益率
 	Timestamp  int64     `xorm:"bigint index"`
 	CreateTime time.Time `xorm:"DateTime index"` // 时间
 }
@@ -142,10 +143,11 @@ func (orm XOrm) InsertCoins(coins []Coin) {
 	}
 }
 
-func (orm XOrm) InsertRecord(symbol string, stratege string, op int32, position int32, price float32, average float32, used float32, size float32, total float32, profit float32, rate float32, explain string, t time.Time) {
+func (orm XOrm) InsertRecord(symbol string, stratege string, order int32, op int32, position int32, price float32, average float32, used float32, size float32, total float32, profit float32, rate float32, explain string, t time.Time) {
 	record := Record{
 		Symbol:     symbol,
 		Strategy:   stratege,
+		Order:      order,
 		Operation:  op,
 		Position:   position,
 		Price:      price,

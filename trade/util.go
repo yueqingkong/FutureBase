@@ -180,17 +180,17 @@ func KeepToRedis(key string, value string) {
 	}
 }
 
-func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, size float32, canUnit float32, show string, t time.Time) {
+func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, order int32,operation base.ORDER, price float32, size float32, canUnit float32, show string, t time.Time) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
 	if mode == "test" {
-		BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
+		BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
 	} else if mode == "release" {
 		buySize := int32(size)
 
 		if buySize == 0 {
-			BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
+			BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
 		} else {
 			var dif float32 = price * DIF // 滑点大些，在波动大的行情才能买进
 
@@ -203,7 +203,7 @@ func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, 
 
 			success := plat.Order(cnotract, symbol, operation, orderPrice, int32(size))
 			if success { // 未能立马全部成交，返回的数据跟成交成功一样，不能区分
-				BuyRecord(plat, symbol, strategy, operation, price, size, canUnit, show, t)
+				BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
 			}
 		}
 	}
@@ -212,7 +212,7 @@ func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, 
 /**
  * 开仓记录
  */
-func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, canSize float32, canUnit float32, show string, t time.Time) {
+func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, order int32,operation base.ORDER, price float32, canSize float32, canUnit float32, show string, t time.Time) {
 	s := plat.Symbol(symbol)
 
 	xorm := orm.NewXOrm()
@@ -267,7 +267,7 @@ func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operatio
 	accountAfter := fmt.Sprintf("[account-after] Used: %f,Balance: %f", account.Buy, account.Balance)
 	explain := accountBefore + Explain(t, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0.0, 0.0, 0.0) + show + accountAfter
 
-	xorm.InsertRecord(s, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
+	xorm.InsertRecord(s, strategy,order, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
 }
 
 /**
@@ -336,6 +336,7 @@ func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operati
 
 	records := xorm.LastRecord(s, strategy, 1)
 	lastRecord := records[0]
+	lastOrder:= lastRecord.Order
 	lastPosition := lastRecord.Position
 	lastAvg := lastRecord.AvgPrice
 	lastUsed := lastRecord.Used
@@ -358,7 +359,7 @@ func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operati
 	explain := Explain(t, strategy, o, lastPosition, price, price, lastUsed, lastSize, total, profit, profitRate, totlaRate)
 	explain = accountBefore + explain + accountAfter
 
-	xorm.InsertRecord(s, strategy, o, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
+	xorm.InsertRecord(s, strategy, lastOrder,o, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
 }
 
 /**
