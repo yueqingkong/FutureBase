@@ -17,9 +17,7 @@ var (
 	DIF    float32 = 0.02  // (dif)交易滑点差价
 )
 
-/**
- * 同步账号
- */
+// 同步账号
 func Account(symbol string, total string) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
@@ -42,7 +40,7 @@ func Account(symbol string, total string) {
 
 		// 账户总额
 		equity := util.StringToFloat32(total)
-		if equity < 0.0 { // 金额不为0 ,如果小于0 金额不变
+		if equity <= 0.0 { // 金额不为0 ,如果小于0 金额不变
 			return
 		}
 
@@ -59,9 +57,7 @@ func Account(symbol string, total string) {
 	}
 }
 
-/**
- * (通道突破) 周期内最高价/最低价
- */
+// (通道突破) 周期内最高价/最低价
 func Channel(symbol string, section string, backRange int32, t time.Time) (float32, float32) {
 	xorm := orm.NewXOrm()
 
@@ -87,12 +83,10 @@ func Channel(symbol string, section string, backRange int32, t time.Time) (float
 	return high, low
 }
 
-/**
- * 平均波动幅度
- *  1、当前交易日的最高价与最低价间的波幅
- *  2、前一交易日收盘价与当个交易日最高价间的波幅
- *  3、前一交易日收盘价与当个交易日最低价间的波幅
- */
+//  平均波动幅度
+//  1、当前交易日的最高价与最低价间的波幅
+//  2、前一交易日收盘价与当个交易日最高价间的波幅
+//  3、前一交易日收盘价与当个交易日最低价间的波幅
 func ATR(symbol string, section string, limit int32) float32 {
 	xorm := orm.NewXOrm()
 	coins := xorm.Before(symbol, section, limit)
@@ -117,20 +111,16 @@ func ATR(symbol string, section string, limit int32) float32 {
 	return atr
 }
 
-/**
- * 买入单位,回撤 ATR 亏损比例
- * rate*Total = atr/price * Unit
- * rate: 总账户最大亏损(总账户 满足连续最大亏损20次)
- * atr/price 回撤(高位最大回撤 0.04)
- */
+// 买入单位,回撤 ATR 亏损比例
+// rate*Total = atr/price * Unit
+// rate: 总账户最大亏损(总账户 满足连续最大亏损20次)
+//atr/price 回撤(高位最大回撤 0.04)
 func Unit(price float32, total float32) float32 {
 	unit := (total * price) / (20.0 * MaxLoss)
 	return unit
 }
 
-/**
- * 操作 -->显示
- */
+// 操作 -->显示
 func OpToString(op int32) string {
 	var ty string
 	if op == 1 {
@@ -145,10 +135,8 @@ func OpToString(op int32) string {
 	return ty
 }
 
-/**
- * 简介 (交易详情)
- * 1: 开多 2: 开空 3: 平仓
- */
+// 简介 (交易详情)
+// 1: 开多 2: 开空 3: 平仓
 func Explain(t time.Time, strategy string, op int32, position int32, price float32, averageprice float32, used float32, size float32, total, profit float32, profitrate float32, totalrate float32) string {
 	ty := OpToString(op)
 
@@ -164,9 +152,7 @@ func Explain(t time.Time, strategy string, op int32, position int32, price float
 	return explain
 }
 
-/**
- * 保存到Redis
- */
+// 保存到Redis
 func KeepToRedis(key string, value string) {
 	xorm := orm.NewXOrm()
 	redis := xorm.Redis(key)
@@ -180,17 +166,17 @@ func KeepToRedis(key string, value string) {
 	}
 }
 
-func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, order int32,operation base.ORDER, price float32, size float32, canUnit float32, show string, t time.Time) {
+func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string,operation base.ORDER, price float32, size float32, canUnit float32, show string, t time.Time) {
 	syncMap := orm.NewSyncMap()
 	mode := syncMap.Model()
 
 	if mode == "test" {
-		BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
+		BuyRecord(plat, symbol, strategy,operation, price, size, canUnit, show, t)
 	} else if mode == "release" {
 		buySize := int32(size)
 
 		if buySize == 0 {
-			BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
+			BuyRecord(plat, symbol, strategy,operation, price, size, canUnit, show, t)
 		} else {
 			var dif float32 = price * DIF // 滑点大些，在波动大的行情才能买进
 
@@ -203,16 +189,14 @@ func Buy(plat base.PlatBase, cnotract base.CONTRACT_PERIOD, symbol base.SYMBOL, 
 
 			success := plat.Order(cnotract, symbol, operation, orderPrice, int32(size))
 			if success { // 未能立马全部成交，返回的数据跟成交成功一样，不能区分
-				BuyRecord(plat, symbol, strategy, order,operation, price, size, canUnit, show, t)
+				BuyRecord(plat, symbol, strategy,operation, price, size, canUnit, show, t)
 			}
 		}
 	}
 }
 
-/**
- * 开仓记录
- */
-func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, order int32,operation base.ORDER, price float32, canSize float32, canUnit float32, show string, t time.Time) {
+// 开仓记录
+func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string,operation base.ORDER, price float32, canSize float32, canUnit float32, show string, t time.Time) {
 	s := plat.Symbol(symbol)
 
 	xorm := orm.NewXOrm()
@@ -267,13 +251,11 @@ func BuyRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, order in
 	accountAfter := fmt.Sprintf("[account-after] Used: %f,Balance: %f", account.Buy, account.Balance)
 	explain := accountBefore + Explain(t, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0.0, 0.0, 0.0) + show + accountAfter
 
-	xorm.InsertRecord(s, strategy,order, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
+	xorm.InsertRecord(s, strategy, op, position, price, avgPrce, totalUsed, totalSize, total, 0, 0, explain, t)
 }
 
-/**
- * 平仓
- * op 1: 开多 2: 开空 3: 平多 4: 平空
- */
+//  平仓
+// op 1: 开多 2: 开空 3: 平多 4: 平空
 func Sell(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, t time.Time) {
 	s := plat.Symbol(symbol)
 
@@ -321,9 +303,7 @@ func Sell(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 	}
 }
 
-/**
- * 平仓记录
- */
+// 平仓记录
 func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operation base.ORDER, price float32, t time.Time) {
 	s := plat.Symbol(symbol)
 	o := plat.ORDER(operation)
@@ -336,7 +316,6 @@ func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operati
 
 	records := xorm.LastRecord(s, strategy, 1)
 	lastRecord := records[0]
-	lastOrder:= lastRecord.Order
 	lastPosition := lastRecord.Position
 	lastAvg := lastRecord.AvgPrice
 	lastUsed := lastRecord.Used
@@ -359,12 +338,10 @@ func SellRecord(plat base.PlatBase, symbol base.SYMBOL, strategy string, operati
 	explain := Explain(t, strategy, o, lastPosition, price, price, lastUsed, lastSize, total, profit, profitRate, totlaRate)
 	explain = accountBefore + explain + accountAfter
 
-	xorm.InsertRecord(s, strategy, lastOrder,o, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
+	xorm.InsertRecord(s, strategy,o, lastPosition, price, lastAvg, lastUsed, lastSize, total, profit, profitRate, explain, t)
 }
 
-/**
- * token - > 张数
- */
+// token - > 张数
 func BuySize(price float32, buyunit float32, zhang float32) float32 {
 	var size float32
 	if buyunit == 0.0 {
@@ -380,9 +357,7 @@ func BuySize(price float32, buyunit float32, zhang float32) float32 {
 	return size
 }
 
-/**
- * 支付手续费
- */
+// 支付手续费
 func PayFee(price float32, size float32, zhang float32) float32 {
 	var value float32
 	if price == 0 {
@@ -393,10 +368,8 @@ func PayFee(price float32, size float32, zhang float32) float32 {
 	return value
 }
 
-/**
- * 收益
- * op 3 平多 4 平空
- */
+// 收益
+// op 3 平多 4 平空
 func Profit(op int32, price float32, lastprice float32, size float32, zhang float32) float32 {
 	var profit float32
 
@@ -410,10 +383,8 @@ func Profit(op int32, price float32, lastprice float32, size float32, zhang floa
 	return profit
 }
 
-/**
- * 收益率
- * op 3 平多 4 平空
- */
+// 收益率
+//  op 3 平多 4 平空
 func ProfitRate(profit float32, lastused float32) float32 {
 	var value float32
 	if lastused == 0 {

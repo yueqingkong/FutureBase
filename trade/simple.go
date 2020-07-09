@@ -55,11 +55,11 @@ func (self Simple) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbo
 		if util.PriceEqual(price, lastBuy) {
 			KeepToRedis(redisKey, saveValue)
 
-			self.Buy(plat, contract, symbol,1, base.BUY_LONG, price, channelInfo, t)
+			self.Buy(plat, contract, symbol, base.BUY_LONG, price, channelInfo, t)
 		} else if util.PriceEqual(price, lastSell) {
 			KeepToRedis(redisKey, saveValue)
 
-			self.Buy(plat, contract, symbol, 1,base.BUY_SHORT, price, channelInfo, t)
+			self.Buy(plat, contract, symbol, base.BUY_SHORT, price, channelInfo, t)
 		}
 	} else {
 		lastRecord := records[0]
@@ -106,7 +106,7 @@ func (self Simple) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbo
 	}
 }
 
-func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, order int32, op base.ORDER, price float32, explain string, t time.Time) {
+func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL,  op base.ORDER, price float32, explain string, t time.Time) {
 	s := plat.Symbol(symbol)
 
 	xorm := orm.NewXOrm()
@@ -124,7 +124,7 @@ func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol
 	canUnit = size * 100.0 / price                                                                                          // 重新计算开仓token
 	if balance < (canUnit/Times) || buy+(canUnit/Times) >= total*MaxBuy || (len(records) > 0 && records[0].Position >= 5) { // 仓位已满
 		log.Print("[买入] 仓位已满")
-		BuyRecord(plat, symbol, self.NAME, order, op, price, 0, 0, explain, t)
+		BuyRecord(plat, symbol, self.NAME, op, price, 0, 0, explain, t)
 	} else {
 		if len(records) == 0 || records[0].Operation == 3 || records[0].Operation == 4 {
 		} else {
@@ -135,6 +135,6 @@ func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol
 		size := BuySize(price, canUnit, ZDollar(s))
 		canUnit = size * ZDollar(s) / price // 取整数，重新计算开仓token
 
-		Buy(plat, contract, symbol, self.NAME, order, op, price, size, realUnit, explain, t)
+		Buy(plat, contract, symbol, self.NAME, op, price, size, realUnit, explain, t)
 	}
 }

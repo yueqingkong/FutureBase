@@ -26,7 +26,7 @@ type BaseTrade struct {
 type FutureStrategy interface {
 	Name() string
 	Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, price float32, t time.Time)
-	Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, order int32, op base.ORDER, price float32, explain string, t time.Time)
+	Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, op base.ORDER, price float32, explain string, t time.Time)
 }
 
 // 运行策略
@@ -55,7 +55,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 
 	go func() {
 		// API限速规则：20次/2s
-		ticker := time.NewTicker(time.Second * 1)
+		ticker := time.NewTicker(time.Second * 2)
 
 		for range ticker.C {
 			log.Println()
@@ -102,9 +102,7 @@ func (self BaseTrade) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, sy
 	}
 }
 
-/**
- * 最新价格
- */
+// 最新价格
 func (self BaseTrade) price(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL) float32 {
 	// 获取当前价格
 	priceLimits := plat.Price(contract, symbol)
@@ -116,11 +114,9 @@ func (self BaseTrade) price(plat base.PlatBase, contract base.CONTRACT_PERIOD, s
 	return priceLimits
 }
 
-/**
- * 交割前,一般是10-15分钟不能进行操作的
- * 交割后，一般是30分钟左右
- * 1 交割前 2 交割进行中 3 交割完成
- */
+// 交割前,一般是10-15分钟不能进行操作的
+// 交割后，一般是30分钟左右
+// 1 交割前 2 交割进行中 3 交割完成
 func (self BaseTrade) delivering(period base.CONTRACT_PERIOD, symbol base.SYMBOL) bool {
 	t := time.Now()
 	begin, end := self.Plat().Delivery(period, symbol)
@@ -134,9 +130,7 @@ func (self BaseTrade) Pulls(plat base.PlatBase, contract base.CONTRACT_PERIOD, s
 	}
 }
 
-/**
- * 同步 历史kline数据
- */
+// 同步 历史kline数据
 func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, section base.PERIOD) {
 	s := self.Plat().Symbol(symbol)
 
@@ -206,10 +200,8 @@ func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PER
 	}
 }
 
-/**
- * k线数据 -> orm.Coin
- * okex 的kline 是倒序的，最近的时间的在最前面
- */
+//  k线数据 -> orm.Coin
+//  okex 的kline 是倒序的，最近的时间的在最前面
 func klineToCoin(symbol string, section base.PERIOD, kline okex.FutureCandles) []orm.Coin {
 	var coins = make([]orm.Coin, 0)
 

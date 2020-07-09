@@ -8,8 +8,13 @@ import (
 
 // 账户信息
 func Account(context *gin.Context) {
+	symbol := context.Query("symbol")
+	if symbol == "" {
+		symbol = "btc"
+	}
+
 	xorm := orm.NewXOrm()
-	accounts := xorm.Accounts()
+	accounts := xorm.Account(symbol)
 
 	context.JSON(200, gin.H{
 		"code":    2000,
