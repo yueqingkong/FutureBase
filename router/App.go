@@ -7,7 +7,7 @@ import (
 )
 
 // 账户信息
-func Account(context *gin.Context) {
+func Accounts(context *gin.Context) {
 	symbol := context.Query("symbol")
 	if symbol == "" {
 		symbol = "btc"
@@ -37,6 +37,22 @@ func Records(context *gin.Context) {
 		"code":    2000,
 		"message": "",
 		"data":    records,
+	})
+}
+
+// 平仓
+func Sellout(context *gin.Context) {
+	symbol := context.Query("symbol")
+	if symbol == "" {
+		symbol = "btc"
+	}
+
+	router.Receive("sellout")
+
+	context.JSON(200, gin.H{
+		"code":    2000,
+		"message": "",
+		"data":    "",
 	})
 }
 

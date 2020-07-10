@@ -53,6 +53,8 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 	symbol := self.SymbolPair()
 	plat.GetInstrument(contract, symbol)
 
+	receive := make(chan string)
+
 	go func() {
 		// API限速规则：20次/2s
 		ticker := time.NewTicker(time.Second * 2)
@@ -63,23 +65,36 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			log.Print("[create-time]", time.Now())
 
 			self.Pulls(plat, contract, symbol, base.MIN_30, base.HOUR_6, base.HOUR_12, base.DAY_1)
-			self.Tick(plat, contract, symbol, strategy)
+
+			priceFloat := self.price(plat, contract, symbol)
+			if priceFloat == 0.0 { // 网络异常时,价格为0
+				return
+			}
+			start := time.Now()
+
+			select {
+			case msg := <-receive:
+				if msg == "sellout" {
+					log.Print("[sellout]")
+					Sell(plat, contract, symbol, strategy.Name(), base.SELL_SHORT, priceFloat, start)
+				}
+				break
+			default:
+				log.Println("[no receive]")
+				break
+			}
+
+			self.Tick(plat, contract, symbol, strategy, priceFloat, start)
 		}
 	}()
 
 	// http
 	port := self.Port()
 	r := router.NewRouter()
-	r.Http(port)
+	r.Http(receive, port)
 }
 
-func (self BaseTrade) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy FutureStrategy) {
-	priceFloat := self.price(plat, contract, symbol)
-	if priceFloat == 0.0 { // 网络异常时,价格为0
-		return
-	}
-
-	start := time.Now()
+func (self BaseTrade) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, strategy FutureStrategy, priceFloat float32, start time.Time) {
 	if self.delivering(contract, symbol) { // 正在交割时间
 		log.Print("[合约交割]")
 		s := plat.Symbol(symbol)

@@ -7,15 +7,27 @@ import (
 )
 
 type Router struct {
+	ch chan string
 }
 
-func NewRouter() Router {
-	return Router{
+var (
+	router *Router
+)
 
+func NewRouter() *Router {
+	if router == nil {
+		router = new(Router)
 	}
+	return router
 }
 
-func (r Router) Http(port string) {
+func (r *Router) Receive(msg string) {
+	r.ch <- msg
+}
+
+func (r *Router) Http(c chan string, port string) {
+	r.ch = c
+
 	engine := gin.Default()
 
 	r.v1(engine)
@@ -28,11 +40,12 @@ func (r Router) Http(port string) {
 /**
  * API
  */
-func (r Router) v1(engine *gin.Engine) {
+func (r *Router) v1(engine *gin.Engine) {
 	app := engine.Group("/trend")
 	{
-		app.GET("/account", Account)
+		app.GET("/account", Accounts)
 		app.GET("/records", Records)
 		app.GET("/kline", KLine)
+		app.GET("/sellout", Sellout)
 	}
 }
