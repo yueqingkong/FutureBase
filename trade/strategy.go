@@ -74,9 +74,24 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 
 			select {
 			case msg := <-receive:
-				if msg == "sellout" {
+				if msg == "buyin" {
 					log.Print("[sellout]")
-					Sell(plat, contract, symbol, strategy.Name(), base.SELL_SHORT, priceFloat, start)
+
+				} else if msg == "sellout" {
+					log.Print("[sellout]")
+					xorm := orm.NewXOrm()
+					records := xorm.LastRecord(plat.Symbol(symbol), strategy.Name(), 1)
+					if len(records) == 0 || records[0].Operation == 3 || records[0].Operation == 4 { // 未持有仓位
+
+					} else {
+						record := records[0]
+						lastOp := record.Operation
+						if lastOp == 1 {
+							Sell(plat, contract, symbol, strategy.Name(), base.SELL_LONG, priceFloat, start)
+						} else if lastOp == 2 {
+							Sell(plat, contract, symbol, strategy.Name(), base.SELL_SHORT, priceFloat, start)
+						}
+					}
 				}
 				break
 			default:

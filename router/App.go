@@ -40,6 +40,22 @@ func Records(context *gin.Context) {
 	})
 }
 
+// 加仓
+func Buyin(context *gin.Context) {
+	symbol := context.Query("symbol")
+	if symbol == "" {
+		symbol = "btc"
+	}
+
+	// router.Receive("buyin")
+
+	context.JSON(200, gin.H{
+		"code":    2000,
+		"message": "",
+		"data":    "",
+	})
+}
+
 // 平仓
 func Sellout(context *gin.Context) {
 	symbol := context.Query("symbol")

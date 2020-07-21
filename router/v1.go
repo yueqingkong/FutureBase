@@ -37,15 +37,15 @@ func (r *Router) Http(c chan string, port string) {
 	}
 }
 
-/**
- * API
- */
+// API
 func (r *Router) v1(engine *gin.Engine) {
 	app := engine.Group("/trend")
 	{
 		app.GET("/account", Accounts)
 		app.GET("/records", Records)
 		app.GET("/kline", KLine)
+
+		app.GET("/buyin", Buyin)
 		app.GET("/sellout", Sellout)
 	}
 }
