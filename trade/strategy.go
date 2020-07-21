@@ -68,7 +68,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 
 			priceFloat := self.price(plat, contract, symbol)
 			if priceFloat == 0.0 { // 网络异常时,价格为0
-				return
+				continue
 			}
 			start := time.Now()
 
