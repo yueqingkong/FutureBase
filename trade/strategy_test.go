@@ -15,7 +15,7 @@ func TestBaseTrade_Start(t *testing.T) {
 		return []string{"", "", ""}
 	}, Account: func() map[string]string {
 		account := make(map[string]string, 0)
-		account["btc"] = "0.01"
+		account["btc"] = "0.1"
 		return account
 	}, Port: func() string {
 		return "9003"

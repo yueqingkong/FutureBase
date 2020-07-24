@@ -1,6 +1,9 @@
 package base
 
-import "time"
+import (
+	"github.com/yueqingkong/FutureBase/orm"
+	"time"
+)
 
 //  底层平台通用 api
 type PlatApi interface {
@@ -25,7 +28,7 @@ type PlatBase interface {
 
 	Delivery(period CONTRACT_PERIOD, symbol SYMBOL) (time.Time, time.Time) // 合约交割时间
 
-	KLine(period CONTRACT_PERIOD, symbol SYMBOL, interval PERIOD, st time.Time) ([][]interface{}, error) // Kline
+	KLine(period CONTRACT_PERIOD, symbol SYMBOL, interval PERIOD, st time.Time) ([]orm.Coin, error) // Kline
 
 	Order(period CONTRACT_PERIOD, symbol SYMBOL, _type ORDER, price float32, unit int32) bool // 下单
 }

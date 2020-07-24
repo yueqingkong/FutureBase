@@ -5,6 +5,7 @@ import (
 	"github.com/yueqingkong/FutureBase/orm"
 	"github.com/yueqingkong/FutureBase/util"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -160,7 +161,7 @@ func (self *OkexFuture) Price(contract base.CONTRACT_PERIOD, symbol base.SYMBOL)
 	return self.Future.Ticker(instrumentid)
 }
 
-func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, interval base.PERIOD, st time.Time) ([][]interface{}, error) {
+func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, interval base.PERIOD, st time.Time) ([]orm.Coin, error) {
 	instrumentid := self.GetInstrument(contract, symbol) // 合约id
 
 	var gran int32
@@ -182,7 +183,14 @@ func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 		gran = 86400
 	}
 
-	return self.Future.Candle(instrumentid, gran, st)
+	var coins []orm.Coin
+	klines, err := self.Future.Candle(instrumentid, gran, st)
+	if err != nil { // 重新获取 instrumentid
+		self.Instrument(contract, symbol)
+	} else {
+		coins = klineToCoin(self.Symbol(symbol), interval, klines)
+	}
+	return coins, err
 }
 
 func (self *OkexFuture) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL, _type base.ORDER, price float32, size int32) bool { // 下单
@@ -215,4 +223,38 @@ func (self *OkexFuture) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL,
 		log.Print("[Buy] result = false, ", result)
 	}
 	return success
+}
+
+//  k线数据 -> orm.Coin
+//  okex 的kline 是倒序的，最近的时间的在最前面
+func klineToCoin(symbol string, section base.PERIOD, kline FutureCandles) []orm.Coin {
+	var coins = make([]orm.Coin, 0)
+
+	for k, value := range kline {
+		var arr = value
+		var open, _ = strconv.ParseFloat(arr[1].(string), 32)
+		var close, _ = strconv.ParseFloat(arr[4].(string), 32)
+		var high, _ = strconv.ParseFloat(arr[2].(string), 32)
+		var low, _ = strconv.ParseFloat(arr[3].(string), 32)
+		var volume, _ = strconv.ParseFloat(arr[5].(string), 32)
+		var createtime, _ = util.IsoToTime(arr[0].(string))
+
+		if k != 0 { // 最近时间一条有效的K线不保存
+			var coin = orm.Coin{
+				Symbol:     symbol,
+				Plat:       "okex",
+				Period:     base.Period(section),
+				Open:       float32(open),
+				Close:      float32(close),
+				High:       float32(high),
+				Low:        float32(low),
+				Volume:     float32(volume),
+				Timestamp:  createtime.Unix(),
+				CreateTime: createtime,
+			}
+
+			coins = append(coins, coin)
+		}
+	}
+	return coins
 }

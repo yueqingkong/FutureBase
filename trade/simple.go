@@ -106,11 +106,19 @@ func (self Simple) Tick(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbo
 	}
 }
 
-func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL,  op base.ORDER, price float32, explain string, t time.Time) {
+func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, op base.ORDER, price float32, explain string, t time.Time) {
 	s := plat.Symbol(symbol)
 
 	xorm := orm.NewXOrm()
 	account := xorm.Account(s)
+	if account.Balance <= 0.0 || account.Total <= 0.0 {
+		account.Symbol = s
+		account.Balance = 1.0
+		account.Total = 1.0
+
+		xorm.InsertAccount(account)
+	}
+
 	buy := account.Buy
 	balance := account.Balance
 	total := account.Total
@@ -121,7 +129,7 @@ func (self Simple) Buy(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol
 	canUnit := total
 
 	size := BuySize(price, canUnit, ZDollar(s))
-	canUnit = size * 100.0 / price                                                                                          // 重新计算开仓token
+	canUnit = size * ZDollar(s) / price                                                                                     // 重新计算开仓token
 	if balance < (canUnit/Times) || buy+(canUnit/Times) >= total*MaxBuy || (len(records) > 0 && records[0].Position >= 5) { // 仓位已满
 		log.Print("[买入] 仓位已满")
 		BuyRecord(plat, symbol, self.NAME, op, price, 0, 0, explain, t)

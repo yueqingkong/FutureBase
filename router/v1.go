@@ -43,7 +43,6 @@ func (r *Router) v1(engine *gin.Engine) {
 	{
 		app.GET("/account", Accounts)
 		app.GET("/records", Records)
-		app.GET("/kline", KLine)
 
 		app.GET("/buyin", Buyin)
 		app.GET("/sellout", Sellout)

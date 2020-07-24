@@ -2,12 +2,9 @@ package trade
 
 import (
 	"github.com/yueqingkong/FutureBase/base"
-	"github.com/yueqingkong/FutureBase/okex"
 	"github.com/yueqingkong/FutureBase/orm"
 	"github.com/yueqingkong/FutureBase/router"
-	"github.com/yueqingkong/FutureBase/util"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -74,9 +71,12 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 
 			select {
 			case msg := <-receive:
-				if msg == "buyin" {
-					log.Print("[sellout]")
-
+				if msg == "buy_long" {
+					log.Print("[buy_long]")
+					strategy.Buy(plat, contract, symbol, base.BUY_LONG, priceFloat, "[开多]", start)
+				} else if msg == "buy_short" {
+					log.Print("[buy_short]")
+					strategy.Buy(plat, contract, symbol, base.BUY_SHORT, priceFloat, "[开空]", start)
 				} else if msg == "sellout" {
 					log.Print("[sellout]")
 					xorm := orm.NewXOrm()
@@ -215,51 +215,15 @@ func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PER
 		startTime = startTime.Add(time.Duration(30) * time.Second)
 	}
 
-	klines, err := plat.KLine(contract, symbol, section, startTime)
+	coins, err := plat.KLine(contract, symbol, section, startTime)
 	if err != nil { // 重新获取 instrumentid
-		plat.Instrument(contract, symbol)
-		klines, _ = plat.KLine(contract, symbol, section, startTime)
-	}
-
-	coins := klineToCoin(s, section, klines)
-	if len(coins) == 0 {
-		log.Print("[PullHistory] len(coins) == 0 ")
+		log.Println(err)
 	} else {
-		xorm.InsertCoins(coins)
-		self.PullHistory(plat, contract, symbol, section)
-	}
-}
-
-//  k线数据 -> orm.Coin
-//  okex 的kline 是倒序的，最近的时间的在最前面
-func klineToCoin(symbol string, section base.PERIOD, kline okex.FutureCandles) []orm.Coin {
-	var coins = make([]orm.Coin, 0)
-
-	for k, value := range kline {
-		var arr = value
-		var open, _ = strconv.ParseFloat(arr[1].(string), 32)
-		var close, _ = strconv.ParseFloat(arr[4].(string), 32)
-		var high, _ = strconv.ParseFloat(arr[2].(string), 32)
-		var low, _ = strconv.ParseFloat(arr[3].(string), 32)
-		var volume, _ = strconv.ParseFloat(arr[5].(string), 32)
-		var createtime, _ = util.IsoToTime(arr[0].(string))
-
-		if k != 0 { // 最近时间一条有效的K线不保存
-			var coin = orm.Coin{
-				Symbol:     symbol,
-				Plat:       "okex",
-				Period:     base.Period(section),
-				Open:       float32(open),
-				Close:      float32(close),
-				High:       float32(high),
-				Low:        float32(low),
-				Volume:     float32(volume),
-				Timestamp:  createtime.Unix(),
-				CreateTime: createtime,
-			}
-
-			coins = append(coins, coin)
+		if len(coins) == 0 {
+			log.Print("[PullHistory] len(coins) == 0 ")
+		} else {
+			xorm.InsertCoins(coins)
+			self.PullHistory(plat, contract, symbol, section)
 		}
 	}
-	return coins
 }
