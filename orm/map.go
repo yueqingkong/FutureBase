@@ -35,14 +35,14 @@ func (sync SyncMap) setValue(key string, value string) {
 }
 
 //////////////////////////////   使用  /////////////////////////////////////
-func (sync SyncMap) GetBalance() float32 {
-	key := fmt.Sprintf("OKEX_BALANCE")
+func (sync SyncMap) GetPrice() float32 {
+	key := fmt.Sprintf("PRICE")
 	value := sync.getValue(key)
 	return util.StringToFloat32(value)
 }
 
-func (sync SyncMap) SetBalance(b float32) {
-	sync.setValue("OKEX_BALANCE", util.Float32ToString(b))
+func (sync SyncMap) SetPrice(b float32) {
+	sync.setValue("PRICE", util.Float32ToString(b))
 }
 
 func (sync SyncMap) GetPairRange() string {

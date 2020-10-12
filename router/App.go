@@ -39,6 +39,23 @@ func Records(context *gin.Context) {
 	})
 }
 
+// 当前价格
+func Price(context *gin.Context) {
+	symbol := context.Query("symbol")
+	if symbol == "" {
+		symbol = "btc"
+	}
+
+	syncMap := orm.NewSyncMap()
+	price := syncMap.GetPrice()
+
+	context.JSON(200, gin.H{
+		"code":    2000,
+		"message": "",
+		"data":    price,
+	})
+}
+
 // 加仓
 func Buyin(context *gin.Context) {
 	order := context.Query("order")

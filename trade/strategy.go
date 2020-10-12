@@ -67,6 +67,8 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			if priceFloat == 0.0 { // 网络异常时,价格为0
 				continue
 			}
+			syncMap.SetPrice(priceFloat)
+
 			start := time.Now()
 
 			select {
