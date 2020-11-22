@@ -3,6 +3,8 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/yueqingkong/FutureBase/orm"
+	"github.com/yueqingkong/FutureBase/util"
+	"log"
 )
 
 // 账户信息
@@ -86,5 +88,32 @@ func Sellout(context *gin.Context) {
 		"code":    2000,
 		"message": "",
 		"data":    "",
+	})
+}
+
+// 平仓
+func KLine(context *gin.Context) {
+	symbol := context.Query("symbol")
+	period := context.Query("period")
+	lasttime := context.Query("timestamp")
+
+	log.Print(symbol, period, lasttime)
+	if symbol == "" || period == "" || lasttime == "" {
+		context.JSON(200, gin.H{
+			"code":    2000,
+			"message": "",
+			"data":    "参数为空",
+		})
+
+		return
+	}
+
+	xorm := orm.NewXOrm()
+	coins := xorm.Next(symbol, period, util.StringToInt64(lasttime))
+
+	context.JSON(200, gin.H{
+		"code":    2000,
+		"message": "",
+		"data":    coins,
 	})
 }

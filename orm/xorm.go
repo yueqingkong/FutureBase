@@ -20,7 +20,7 @@ type Coin struct {
 	High       float32   `xorm:"float"`
 	Low        float32   `xorm:"float"`
 	Volume     float32   `xorm:"float"`
-	Timestamp  int64     `xorm:"bigint index index(symbol,period) index(symbol,period,timestamp)"`
+	Timestamp  int64     `xorm:"bigint index index(symbol,period) index(symbol,period,timestamp)"` // 秒
 	CreateTime time.Time `xorm:"DATETIME"`
 }
 
@@ -260,19 +260,14 @@ func (orm XOrm) Last(symbol string, period string) Coin {
 
 // 查询给定时间之后的k线
 // start 为空，返回所有
-func (orm XOrm) Next(symbol string, period string, start time.Time) []Coin {
+func (orm XOrm) Next(symbol string, period string, timestamp int64) []Coin {
 	coins := make([]Coin, 0)
 
 	var err error
-	if start.Day() == 0 {
-		err = engine.Where("symbol = ? and period = ?", symbol, period).
-			Asc("timestamp").
-			Find(&coins)
-	} else {
-		err = engine.Where("symbol = ? and period = ? and timestamp > ?", symbol, period, start.Unix()).
-			Asc("timestamp").
-			Find(&coins)
-	}
+	err = engine.Where("symbol = ? and period = ? and timestamp > ?", symbol, period, timestamp).
+		Asc("timestamp").
+		Limit(200).
+		Find(&coins)
 
 	if err != nil {
 		log.Print("[Next]", err)
