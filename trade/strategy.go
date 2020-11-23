@@ -61,7 +61,7 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 			log.Println("--------------------------")
 			log.Print("[create-time]", time.Now())
 
-			self.Pulls(plat, contract, symbol, base.MIN_30, base.HOUR_6, base.HOUR_12, base.DAY_1)
+			self.Pulls(plat, contract, symbol, base.MIN_15, base.MIN_30, base.HOUR_4, base.HOUR_6, base.HOUR_12, base.DAY_1)
 
 			priceFloat := self.price(plat, contract, symbol)
 			if priceFloat == 0.0 { // 网络异常时,价格为0
@@ -180,6 +180,11 @@ func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PER
 	diffHours := time.Now().Sub(startTime).Hours()
 
 	// 是否最新的数据
+	if section == base.MIN_15 {
+		if diffHours < 0.5 {
+			return
+		}
+	}
 	if section == base.MIN_30 {
 		if diffHours < 1 {
 			return
