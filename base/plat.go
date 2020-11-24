@@ -26,7 +26,7 @@ type PlatBase interface {
 
 	Instrument(period CONTRACT_PERIOD, symbol SYMBOL) (string, time.Time) // 强制请求 合约id
 
-	Delivery(period CONTRACT_PERIOD, symbol SYMBOL) (time.Time, time.Time) // 合约交割时间
+	Delivery(period CONTRACT_PERIOD, symbol SYMBOL) (bool,time.Time, time.Time) // 合约交割时间 false,不需要交割
 
 	KLine(period CONTRACT_PERIOD, symbol SYMBOL, interval PERIOD, st time.Time) ([]orm.Coin, error) // Kline
 

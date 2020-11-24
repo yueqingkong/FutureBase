@@ -34,7 +34,6 @@ type Instrument []struct {
 
 type SpotCandles [][]interface{}
 
-
 type Depth struct {
 	Asks      [][]string `json:"asks"`
 	Bids      [][]string `json:"bids"`
@@ -528,3 +527,22 @@ type OrderInfo struct {
 }
 
 type Deal []interface{}
+
+type SwapTicker struct {
+	InstrumentID string    `json:"instrument_id"`
+	Last         string    `json:"last"`
+	BestBid      string    `json:"best_bid"`
+	BestAsk      string    `json:"best_ask"`
+	High24H      string    `json:"high_24h"`
+	Low24H       string    `json:"low_24h"`
+	Volume24H    string    `json:"volume_24h"`
+	Timestamp    time.Time `json:"timestamp"`
+}
+
+type SwapOrder struct {
+	ClientOid    string `json:"client_oid"`
+	ErrorCode    string `json:"error_code"`
+	ErrorMessage string `json:"error_message"`
+	OrderID      string `json:"order_id"`
+	Result       string `json:"result"`
+}

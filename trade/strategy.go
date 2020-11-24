@@ -151,9 +151,9 @@ func (self BaseTrade) price(plat base.PlatBase, contract base.CONTRACT_PERIOD, s
 // 1 交割前 2 交割进行中 3 交割完成
 func (self BaseTrade) delivering(period base.CONTRACT_PERIOD, symbol base.SYMBOL) bool {
 	t := time.Now()
-	begin, end := self.Plat().Delivery(period, symbol)
+	b, begin, end := self.Plat().Delivery(period, symbol)
 
-	return t.After(begin) && t.Before(end)
+	return b && t.After(begin) && t.Before(end)
 }
 
 func (self BaseTrade) Pulls(plat base.PlatBase, contract base.CONTRACT_PERIOD, symbol base.SYMBOL, srctions ...base.PERIOD) {
@@ -184,8 +184,7 @@ func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PER
 		if diffHours < 0.5 {
 			return
 		}
-	}
-	if section == base.MIN_30 {
+	}else if section == base.MIN_30 {
 		if diffHours < 1 {
 			return
 		}

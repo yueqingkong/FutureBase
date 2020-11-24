@@ -1,10 +1,10 @@
 package base
 
-type SYMBOL int        // 交易对
-type PERIOD int        // k线时间
-type DEPTH int         // 深度
-type ORDER int         // 下单
-type ORDER_TYPE int    // 订单类型
+type SYMBOL int          // 交易对
+type PERIOD int          // k线时间
+type DEPTH int           // 深度
+type ORDER int           // 下单
+type ORDER_TYPE int      // 订单类型
 type CONTRACT_PERIOD int // 合约交割周期类型
 
 const (
@@ -58,9 +58,10 @@ const (
 	STOP_LIMIT_SELL
 
 	NONE     CONTRACT_PERIOD = iota // 现货|交割合约
-	WEEK                          // 当周
-	NEX_WEEK                      // 次周
-	QUARTER                       // 季度
+	WEEK                            // 当周
+	NEX_WEEK                        // 次周
+	QUARTER                         // 季度
+	SWAP                            // 永续
 )
 
 func Period(period PERIOD) string {
@@ -69,6 +70,9 @@ func Period(period PERIOD) string {
 	switch period {
 	case MIN_1:
 		s = "1m"
+		break
+	case MIN_5:
+		s = "5m"
 		break
 	case MIN_30:
 		s = "30m"

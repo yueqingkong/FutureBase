@@ -10,29 +10,29 @@ import (
 )
 
 // (中间层) Api的抽象访问
-type OkexFuture struct {
-	*Future
+type OkexSwap struct {
+	*Swap
 }
 
 var (
-	okexFuture *OkexFuture
+	okexSwap *OkexSwap
 )
 
-func NewOkexFuture() *OkexFuture {
-	if okexFuture == nil {
-		okexFuture = new(OkexFuture)
-		okexFuture.Future = NewFuture()
+func NewOkexSwap() *OkexSwap {
+	if okexSwap == nil {
+		okexSwap = new(OkexSwap)
+		okexSwap.Swap = NewSwap()
 	}
-	return okexFuture
+	return okexSwap
 }
 
-func (self *OkexFuture) InitKeys(keys []string) {
+func (self *OkexSwap) InitKeys(keys []string) {
 	self.Apikey = keys[0]
 	self.SecretKey = keys[1]
 	self.PhraseKey = keys[2]
 }
 
-func (self *OkexFuture) Symbol(symbol base.SYMBOL) string {
+func (self *OkexSwap) Symbol(symbol base.SYMBOL) string {
 	var v string
 	switch symbol {
 	case base.BTCUSD, base.BTCUSDT:
@@ -51,7 +51,7 @@ func (self *OkexFuture) Symbol(symbol base.SYMBOL) string {
 	return v
 }
 
-func (self *OkexFuture) ORDER(order base.ORDER) int32 {
+func (self *OkexSwap) ORDER(order base.ORDER) int32 {
 	var v int32
 	switch order {
 	case base.BUY_LONG:
@@ -70,51 +70,41 @@ func (self *OkexFuture) ORDER(order base.ORDER) int32 {
 	return v
 }
 
-func (self *OkexFuture) GetInstrument(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) string {
-	s := self.Symbol(symbol)
+func (self *OkexSwap) GetInstrument(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) string {
+	instrumentid := "BTC-USD-SWAP"
 
-	syncMap := orm.NewSyncMap()
-	instrumentid := syncMap.GetInstrument(s) // 合约id
-	if instrumentid == "" {
-		xorm := orm.NewXOrm()
-		instrument := xorm.Instrument(s)
-
-		if instrument.Symbol == "" {
-			instrumentid, _ = self.Instrument(contract, symbol)
-		} else {
-			instrumentid = instrument.Key
-			syncMap.SetInstrument(s, instrumentid)
-		}
+	switch symbol {
+	case base.BTCUSD:
+	case base.BTCUSDT:
+		instrumentid = "BTC-USD-SWAP"
+		break
+	case base.ETHUSD:
+	case base.ETHUSDT:
+		instrumentid = "ETH-USD-SWAP"
+		break
+	case base.LTCUSD:
+	case base.LTCUSDT:
+		instrumentid = "LTC-USD-SWAP"
+		break
+	case base.EOSUSD:
+	case base.EOSUSDT:
+		instrumentid = "EOS-USD-SWAP"
+		break
 	}
 	return instrumentid
 }
 
 // Okex合约交割时间(只有日期没有时间)
 // 合约时间范围
-func (self *OkexFuture) Delivery(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) (bool,time.Time, time.Time) {
-	s := self.Symbol(symbol)
-
-	var t time.Time
-
-	xorm := orm.NewXOrm()
-	instrument := xorm.Instrument(s)
-
-	if instrument.Symbol == "" {
-		_, t = self.Instrument(contract, symbol)
-	} else {
-		t = instrument.Delivery
-	}
-
-	begin := t.Add(time.Duration(-30) * time.Minute) // 30min 前
-	end := t.Add(time.Duration(30) * time.Minute)    // 30min 后
-	return true,begin, end
+func (self *OkexSwap) Delivery(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) (bool, time.Time, time.Time) {
+	return false, time.Time{}, time.Time{}
 }
 
 // 合约信息
 // 合约id, 合约交割日期
 // 合约交割时间(只有日期没有时间)
 // 一般是周五 下午4点,上下偏差 30分钟
-func (self *OkexFuture) Instrument(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL) (string, time.Time) {
+func (self *OkexSwap) Instrument(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL) (string, time.Time) {
 	var instrumentid string
 	var deliveryTime time.Time
 
@@ -155,13 +145,13 @@ func (self *OkexFuture) Instrument(conrtact base.CONTRACT_PERIOD, symbol base.SY
 	return instrumentid, deliveryTime
 }
 
-func (self *OkexFuture) Price(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) float32 {
+func (self *OkexSwap) Price(contract base.CONTRACT_PERIOD, symbol base.SYMBOL) float32 {
 	instrumentid := self.GetInstrument(contract, symbol) // 合约id
 
-	return self.Future.Ticker(instrumentid)
+	return self.Swap.Ticker(instrumentid)
 }
 
-func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, interval base.PERIOD, st time.Time) ([]orm.Coin, error) {
+func (self *OkexSwap) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL, interval base.PERIOD, st time.Time) ([]orm.Coin, error) {
 	instrumentid := self.GetInstrument(contract, symbol) // 合约id
 
 	var gran int32
@@ -186,7 +176,7 @@ func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 	}
 
 	var coins []orm.Coin
-	klines, err := self.Future.Candle(instrumentid, gran, st)
+	klines, err := self.Swap.Candle(instrumentid, gran, st)
 	if err != nil { // 重新获取 instrumentid
 		self.Instrument(contract, symbol)
 	} else {
@@ -195,7 +185,7 @@ func (self *OkexFuture) KLine(contract base.CONTRACT_PERIOD, symbol base.SYMBOL,
 	return coins, err
 }
 
-func (self *OkexFuture) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL, _type base.ORDER, price float32, size int32) bool { // 下单
+func (self *OkexSwap) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL, _type base.ORDER, price float32, size int32) bool { // 下单
 	instrumentid := self.GetInstrument(conrtact, symbol)
 
 	var operation int32
@@ -215,10 +205,12 @@ func (self *OkexFuture) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL,
 	}
 
 	success := false // 下单成功
-	result, err := self.Future.Order(instrumentid, operation, 2, price, size, 0)
+	result, err := self.Swap.Order(instrumentid, operation, 2, price, size, 0)
+	log.Print(result)
+
 	if err != nil {
 		log.Println("[Buy] err: ", err)
-	} else if result.Result { // 张数为0 result.Result=false 未能立马全部成交，返回的数据跟成交成功一样，不能区分
+	} else if result.ErrorCode == "0" { // 张数为0 result.Result=false 未能立马全部成交，返回的数据跟成交成功一样，不能区分
 		// 未能立马全部成交，返回的数据跟成交成功一样，不能区分
 		success = true
 	} else {
@@ -229,7 +221,7 @@ func (self *OkexFuture) Order(conrtact base.CONTRACT_PERIOD, symbol base.SYMBOL,
 
 //  k线数据 -> orm.Coin
 //  okex 的kline 是倒序的，最近的时间的在最前面
-func klineToCoin(symbol string, section base.PERIOD, kline FutureCandles) []orm.Coin {
+func (self *OkexSwap) klineToCoin(symbol string, section base.PERIOD, kline FutureCandles) []orm.Coin {
 	var coins = make([]orm.Coin, 0)
 
 	for k, value := range kline {
