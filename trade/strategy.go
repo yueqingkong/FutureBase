@@ -81,15 +81,15 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 					strategy.Buy(plat, contract, symbol, base.BUY_SHORT, priceFloat, "[开空]", start)
 				} else if msg == "sellout" {
 					log.Print("[sellout]")
-					xorm := orm.NewXOrm()
-
+					resetORM := orm.NewXOrm()
 					s := plat.Symbol(symbol)
-					account := xorm.Account(s)
+					account := resetORM.Account(s)
 					account.Balance = account.Total
 					account.Buy = 0.0
-					xorm.UpdateAccount(account)
+					resetORM.UpdateAccount(account)
 
-					xorm.ClearRecords()
+					clearORM := orm.NewXOrm()
+					clearORM.ClearRecords()
 				}
 				break
 			default:
