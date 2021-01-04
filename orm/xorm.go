@@ -398,7 +398,7 @@ func (orm XOrm) ClearAccount() {
 
 // 清空交易记录
 func (orm XOrm) ClearRecords() {
-	sql := "delete from margin_record"
+	sql := "delete from margin_record where id >= 0;"
 	_, err := engine.Exec(sql)
 	if err != nil {
 		log.Print("[ClearSpotRecords]", err)

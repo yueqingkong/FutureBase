@@ -83,6 +83,20 @@ func Channel(symbol string, section string, backRange int32, t time.Time) (float
 	return high, low
 }
 
+// 移动平均线
+// N日移动平均线=N日收市价之和/N
+func MA(symbol string, period string, limit int32, t time.Time) float32 {
+	var total float32
+
+	xorm := orm.NewXOrm()
+	coins := xorm.Before(symbol, period, limit)
+	for _, value := range coins {
+		total += value.Close
+	}
+
+	return total / float32(limit)
+}
+
 //  平均波动幅度
 //  1、当前交易日的最高价与最低价间的波幅
 //  2、前一交易日收盘价与当个交易日最高价间的波幅

@@ -82,18 +82,14 @@ func (self BaseTrade) Start(strategy FutureStrategy) {
 				} else if msg == "sellout" {
 					log.Print("[sellout]")
 					xorm := orm.NewXOrm()
-					records := xorm.LastRecord(plat.Symbol(symbol), strategy.Name(), 1)
-					if len(records) == 0 || records[0].Operation == 3 || records[0].Operation == 4 { // 未持有仓位
 
-					} else {
-						record := records[0]
-						lastOp := record.Operation
-						if lastOp == 1 {
-							Sell(plat, contract, symbol, strategy.Name(), base.SELL_LONG, priceFloat, start)
-						} else if lastOp == 2 {
-							Sell(plat, contract, symbol, strategy.Name(), base.SELL_SHORT, priceFloat, start)
-						}
-					}
+					s := plat.Symbol(symbol)
+					account := xorm.Account(s)
+					account.Balance = account.Total
+					account.Buy = 0.0
+					xorm.UpdateAccount(account)
+
+					xorm.ClearRecords()
 				}
 				break
 			default:
@@ -184,7 +180,7 @@ func (self BaseTrade) PullHistory(plat base.PlatBase, contract base.CONTRACT_PER
 		if diffHours < 0.5 {
 			return
 		}
-	}else if section == base.MIN_30 {
+	} else if section == base.MIN_30 {
 		if diffHours < 1 {
 			return
 		}
