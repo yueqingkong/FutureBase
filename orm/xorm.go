@@ -389,7 +389,7 @@ func (orm XOrm) ClearCoin() {
 }
 
 func (orm XOrm) ClearAccount() {
-	sql := "delete from margin_account;"
+	sql := "delete from account;"
 	_, err := engine.Exec(sql)
 	if err != nil {
 		log.Print("[ClearAccount]", err)
@@ -398,10 +398,10 @@ func (orm XOrm) ClearAccount() {
 
 // 清空交易记录
 func (orm XOrm) ClearRecords() {
-	sql := "delete from margin_record where id >= 0;"
+	sql := "delete from record where id >= 0;"
 	_, err := engine.Exec(sql)
 	if err != nil {
-		log.Print("[ClearSpotRecords]", err)
+		log.Print("[Clear Records]", err)
 	}
 }
 
